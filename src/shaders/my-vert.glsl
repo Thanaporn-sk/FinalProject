@@ -4,6 +4,7 @@ varying float vNoise;
 uniform int numOctaves;
 uniform float time;
 uniform float noiseStrength;
+uniform float audioScale;
 const int aLargeNumber = 10;
 
 float generateNoise(int x, int y, int z, int numOctave) {
@@ -81,7 +82,7 @@ float generateMultiOctaveNoise(float x, float y, float z) {
 
 void main() {
     float offset = generateMultiOctaveNoise(position[0] + time/999.0, position[1] + time/999.0, position[2] + time/999.0);
-    vec3 newPosition = position + offset * normal;
+    vec3 newPosition = position + offset * normal * audioScale;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
     vUv = uv;

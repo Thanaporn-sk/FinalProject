@@ -18,6 +18,10 @@ var myMaterial = new THREE.ShaderMaterial({
       numOctaves: {
         type: "f",
         value: 3
+      },
+      audioScale: {
+        type: "f",
+        value: 1
       }
     },
     vertexShader: require('./shaders/my-vert.glsl'),
@@ -58,10 +62,57 @@ function onLoad(framework) {
   });
 }
 
+function getAverageVolume(array) {
+      var values = 0;
+      var average;
+
+      var length = array.length;
+
+      // get all the frequency amplitudes
+      for (var i = 0; i < length; i++) {
+          values += array[i];
+      }
+
+      average = values / length;
+      return average;
+}
+
+function mapVolumeToNoiseStrength(vol) {
+  // map range from 0 -> 150 to 4 -> 1
+  var result = vol / 150 * (1 - 4) + 4;
+  return result;
+}
+
 // called on frame updates
 function onUpdate(framework) {
   // animates icosahedron
   myMaterial.uniforms.time.value = Date.now() - programStartTime;
+  // get the average for the first channel
+  if (framework.audioSourceBuffer.buffer != undefined) {
+      // var array = new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+      // framework.audioAnalyser.getByteFrequencyData(array);
+
+      // var step = Math.round(array.length / 60);
+
+      // var value = 0;
+      // //Iterate through the bars and scale the z axis
+      // for (var i = 0; i < 60; i++) {
+      //     var temp = array[i * step] / 4;
+      //     value += temp < 1 ? 1 : temp;
+      //     console.log(value);
+      //     myMaterial.audioScale = value;
+      // }
+     // get the average, bincount is fftsize / 2
+      var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+      framework.audioAnalyser.getByteFrequencyData(array);
+      var average = getAverageVolume(array)
+
+      //console.log('VOLUME:' + average); //here's the volume
+      var newNoiseStrength = mapVolumeToNoiseStrength(average); 
+      //console.log(newNoiseStrength);
+      myMaterial.uniforms.noiseStrength.value = newNoiseStrength;
+
+  }
   myMaterial.needsUpdate = true;
 }
 

@@ -44,7 +44,7 @@ function init(callback, update) {
     // create analyser
     framework.audioAnalyser = framework.audioContext.createAnalyser();
     framework.audioAnalyser.smoothingTimeConstant = 0.3;
-    framework.audioAnalyser.fftSize = 2048;
+    framework.audioAnalyser.fftSize = 1024;
     
     // create the source buffer
     framework.audioSourceBuffer = framework.audioContext.createBufferSource();
@@ -52,7 +52,6 @@ function init(callback, update) {
     // connect source and analyser
     framework.audioSourceBuffer.connect(framework.audioAnalyser);
     framework.audioAnalyser.connect(framework.audioContext.destination);
-    framework.audioSourceBuffer.connect(framework.audioContext.destination);
 
 
     // add drag and drop functionality for uploading audio file
@@ -85,6 +84,7 @@ function init(callback, update) {
             framework.audioContext.decodeAudioData(fileResult, function(buffer) {
               framework.audioSourceBuffer.buffer = buffer;
               framework.audioSourceBuffer.start();
+              framework.audioSourceBuffer.loop = true;
             }, function(e){"Error with decoding audio data" + e.err});
             
             //visualizer.start(fileResult);
