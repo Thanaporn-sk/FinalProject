@@ -45,14 +45,12 @@ function init(callback, update) {
     framework.audioAnalyser = framework.audioContext.createAnalyser();
     framework.audioAnalyser.smoothingTimeConstant = 0.3;
     framework.audioAnalyser.fftSize = 1024;
-    
     // create the source buffer
     framework.audioSourceBuffer = framework.audioContext.createBufferSource();
 
     // connect source and analyser
     framework.audioSourceBuffer.connect(framework.audioAnalyser);
     framework.audioAnalyser.connect(framework.audioContext.destination);
-
 
     // add drag and drop functionality for uploading audio file
     window.addEventListener("dragenter", dragenter, false);  
@@ -84,16 +82,33 @@ function init(callback, update) {
             framework.audioContext.decodeAudioData(fileResult, function(buffer) {
               framework.audioSourceBuffer.buffer = buffer;
               framework.audioSourceBuffer.start();
-              framework.audioSourceBuffer.loop = true;
             }, function(e){"Error with decoding audio data" + e.err});
-            
-            //visualizer.start(fileResult);
         };
         fileReader.readAsArrayBuffer(framework.audioFile);
-
-        //handleFiles(files);
       } else {
         // stop current visualization and load new song
+        framework.audioSourceBuffer.stop();
+
+        // create the source buffer
+        framework.audioSourceBuffer = framework.audioContext.createBufferSource();
+
+        // connect source and analyser
+        framework.audioSourceBuffer.connect(framework.audioAnalyser);
+        framework.audioAnalyser.connect(framework.audioContext.destination);
+        framework.audioFile = e.dataTransfer.files[0];
+
+        var fileName = framework.audioFile.name;
+        document.getElementById('guide').innerHTML = "Playing " + fileName;
+        var fileReader = new FileReader();
+        
+        fileReader.onload = function (e) {
+            var fileResult = fileReader.result;
+            framework.audioContext.decodeAudioData(fileResult, function(buffer) {
+              framework.audioSourceBuffer.buffer = buffer;
+              framework.audioSourceBuffer.start();
+            }, function(e){"Error with decoding audio data" + e.err});
+        };
+        fileReader.readAsArrayBuffer(framework.audioFile);
       }
     }
 
