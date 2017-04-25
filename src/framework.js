@@ -17,6 +17,33 @@ function init(callback, update) {
     audioBuffer: undefined
   };
 
+  function createAndConnectAudioBuffer() {
+    // create the source buffer
+    framework.audioSourceBuffer = framework.audioContext.createBufferSource();
+    // connect source and analyser
+    framework.audioSourceBuffer.connect(framework.audioAnalyser);
+    framework.audioAnalyser.connect(framework.audioContext.destination);
+  }
+
+  function playAudio(file) {
+    createAndConnectAudioBuffer();
+    framework.audioFile = file;
+
+    var fileName = framework.audioFile.name;
+    document.getElementById('guide').innerHTML = "Playing " + fileName;
+    var fileReader = new FileReader();
+    
+    fileReader.onload = function (e) {
+        var fileResult = fileReader.result;
+        framework.audioContext.decodeAudioData(fileResult, function(buffer) {
+          framework.audioSourceBuffer.buffer = buffer;
+          framework.audioBuffer = buffer;
+          framework.audioSourceBuffer.start();
+        }, function(e){"Error with decoding audio data" + e.err});
+    };
+    fileReader.readAsArrayBuffer(framework.audioFile);
+  }
+
   // run this function after the window loads
   window.addEventListener('load', function() {
     var scene = new THREE.Scene();
@@ -75,11 +102,9 @@ function init(callback, update) {
         } else {
           framework.paused = false;
           framework.audioStartTime = framework.audioContext.currentTime;
-          framework.audioSourceBuffer = framework.audioContext.createBufferSource();
-          // Connect graph
+
+          createAndConnectAudioBuffer();
           framework.audioSourceBuffer.buffer = framework.audioBuffer;
-          framework.audioSourceBuffer.connect(framework.audioAnalyser);
-          framework.audioAnalyser.connect(framework.audioContext.destination);
           // Start playback, but make sure we stay in bound of the buffer.
           framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
         }
@@ -100,46 +125,11 @@ function init(callback, update) {
       e.stopPropagation();
       e.preventDefault();
       if (framework.audioFile == undefined) {
-        framework.audioFile = e.dataTransfer.files[0];
-
-        var fileName = framework.audioFile.name;
-        document.getElementById('guide').innerHTML = "Playing " + fileName;
-        var fileReader = new FileReader();
-        
-        fileReader.onload = function (e) {
-            var fileResult = fileReader.result;
-            framework.audioContext.decodeAudioData(fileResult, function(buffer) {
-              framework.audioSourceBuffer.buffer = buffer;
-              framework.audioBuffer = buffer;
-              framework.audioSourceBuffer.start();
-            }, function(e){"Error with decoding audio data" + e.err});
-        };
-        fileReader.readAsArrayBuffer(framework.audioFile);
+        playAudio(e.dataTransfer.files[0]);
       } else {
         // stop current visualization and load new song
         framework.audioSourceBuffer.stop();
-
-        // create the source buffer
-        framework.audioSourceBuffer = framework.audioContext.createBufferSource();
-
-        // connect source and analyser
-        framework.audioSourceBuffer.connect(framework.audioAnalyser);
-        framework.audioAnalyser.connect(framework.audioContext.destination);
-        framework.audioFile = e.dataTransfer.files[0];
-
-        var fileName = framework.audioFile.name;
-        document.getElementById('guide').innerHTML = "Playing " + fileName;
-        var fileReader = new FileReader();
-        
-        fileReader.onload = function (e) {
-            var fileResult = fileReader.result;
-            framework.audioContext.decodeAudioData(fileResult, function(buffer) {
-              framework.audioSourceBuffer.buffer = buffer;
-              framework.audioBuffer = buffer;
-              framework.audioSourceBuffer.start();
-            }, function(e){"Error with decoding audio data" + e.err});
-        };
-        fileReader.readAsArrayBuffer(framework.audioFile);
+        playAudio(e.dataTransfer.files[0]);
       }
     }
 

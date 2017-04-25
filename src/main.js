@@ -7,7 +7,7 @@ var programStartTime;
 // used to keep track of animations when paused
 var pauseTime;
 
-var myMaterial = new THREE.ShaderMaterial({
+var icosahedronMaterial = new THREE.ShaderMaterial({
   uniforms: {
       time: { // Check the Three.JS documentation for the different allowed types and values
         type: "f", 
@@ -50,7 +50,7 @@ function onLoad(framework) {
 
   var icosahedronGeometry = new THREE.IcosahedronGeometry(1, guiFields.icosahedronDetail);
 
-  var texturedIcosahedron = new THREE.Mesh(icosahedronGeometry, myMaterial);
+  var texturedIcosahedron = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
   scene.add(texturedIcosahedron);
   
   // set camera position
@@ -90,9 +90,9 @@ function onUpdate(framework) {
   if (!framework.paused) {
     // animates icosahedron
     if (pauseTime != undefined) {
-      myMaterial.uniforms.time.value = pauseTime - programStartTime;
+      icosahedronMaterial.uniforms.time.value = pauseTime - programStartTime;
     } else {
-      myMaterial.uniforms.time.value = Date.now() - programStartTime;
+      icosahedronMaterial.uniforms.time.value = Date.now() - programStartTime;
     } 
 
     // get the average for the first channel
@@ -108,7 +108,7 @@ function onUpdate(framework) {
         //     var temp = array[i * step] / 4;
         //     value += temp < 1 ? 1 : temp;
         //     console.log(value);
-        //     myMaterial.audioScale = value;
+        //     icosahedronMaterial.audioScale = value;
         // }
        // get the average, bincount is fftsize / 2
         var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
@@ -118,10 +118,10 @@ function onUpdate(framework) {
         //console.log('VOLUME:' + average); //here's the volume
         var newNoiseStrength = mapVolumeToNoiseStrength(average); 
         //console.log(newNoiseStrength);
-        myMaterial.uniforms.noiseStrength.value = newNoiseStrength;
+        icosahedronMaterial.uniforms.noiseStrength.value = newNoiseStrength;
 
     }
-    myMaterial.needsUpdate = true;
+    icosahedronMaterial.needsUpdate = true;
     pauseTime = undefined;
   } else {
     console.log(pauseTime);
