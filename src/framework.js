@@ -10,7 +10,11 @@ function init(callback, update) {
   var gui = new DAT.GUI();
 
   var framework = {
-    gui: gui
+    gui: gui,
+    paused: false,
+    audioStartOffset: 0,
+    audioStartTime: 0,
+    audioBuffer: undefined
   };
 
   // run this function after the window loads
@@ -56,6 +60,31 @@ function init(callback, update) {
     window.addEventListener("dragenter", dragenter, false);  
     window.addEventListener("dragover", dragover, false);
     window.addEventListener("drop", drop, false);
+    // add pausing functionality via spacebar
+    window.addEventListener("keypress", keypress, false);
+
+    function keypress(e) {
+      console.log(framework.audioBuffer);
+      if (e.keyCode == 32 && framework.audioBuffer != undefined) {
+        if (!framework.paused) {
+          console.log("PAUSE");
+          framework.paused = true;
+          framework.audioSourceBuffer.stop();
+          // Measure how much time passed since the last pause.
+          framework.audioStartOffset += framework.audioContext.currentTime - framework.audioStartTime;
+        } else {
+          framework.paused = false;
+          framework.audioStartTime = framework.audioContext.currentTime;
+          framework.audioSourceBuffer = framework.audioContext.createBufferSource();
+          // Connect graph
+          framework.audioSourceBuffer.buffer = framework.audioBuffer;
+          framework.audioSourceBuffer.connect(framework.audioAnalyser);
+          framework.audioAnalyser.connect(framework.audioContext.destination);
+          // Start playback, but make sure we stay in bound of the buffer.
+          framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
+        }
+      }
+    }
 
     function dragenter(e) {
       e.stopPropagation();
@@ -81,6 +110,7 @@ function init(callback, update) {
             var fileResult = fileReader.result;
             framework.audioContext.decodeAudioData(fileResult, function(buffer) {
               framework.audioSourceBuffer.buffer = buffer;
+              framework.audioBuffer = buffer;
               framework.audioSourceBuffer.start();
             }, function(e){"Error with decoding audio data" + e.err});
         };
@@ -105,6 +135,7 @@ function init(callback, update) {
             var fileResult = fileReader.result;
             framework.audioContext.decodeAudioData(fileResult, function(buffer) {
               framework.audioSourceBuffer.buffer = buffer;
+              framework.audioBuffer = buffer;
               framework.audioSourceBuffer.start();
             }, function(e){"Error with decoding audio data" + e.err});
         };
