@@ -38,7 +38,7 @@ function onLoad(framework) {
   var renderer = framework.renderer;
   var gui = framework.gui;
 
-  // LOOK: the line below is synyatic sugar for the code above. Optional, but I sort of recommend it.
+  // LOOK: the line below is syntactic sugar for the code above. Optional, but I sort of recommend it.
   // var {scene, camera, renderer, gui, stats} = framework; 
 
   // initialize icosahedron object
@@ -87,48 +87,35 @@ function mapVolumeToNoiseStrength(vol) {
 
 // called on frame updates
 function onUpdate(framework) {
-  if (!framework.paused) {
-    // animates icosahedron
-    if (pauseTime != undefined) {
-      icosahedronMaterial.uniforms.time.value = pauseTime - programStartTime;
-    } else {
-      icosahedronMaterial.uniforms.time.value = Date.now() - programStartTime;
-    } 
+  icosahedronMaterial.uniforms.time.value = Date.now() - programStartTime;
 
-    // get the average for the first channel
-    if (framework.audioSourceBuffer.buffer != undefined) {
-        // var array = new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-        // framework.audioAnalyser.getByteFrequencyData(array);
+  // get the average for the first channel
+  if (framework.audioSourceBuffer.buffer != undefined) {
+      // var array = new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+      // framework.audioAnalyser.getByteFrequencyData(array);
 
-        // var step = Math.round(array.length / 60);
+      // var step = Math.round(array.length / 60);
 
-        // var value = 0;
-        // //Iterate through the bars and scale the z axis
-        // for (var i = 0; i < 60; i++) {
-        //     var temp = array[i * step] / 4;
-        //     value += temp < 1 ? 1 : temp;
-        //     console.log(value);
-        //     icosahedronMaterial.audioScale = value;
-        // }
-       // get the average, bincount is fftsize / 2
-        var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-        framework.audioAnalyser.getByteFrequencyData(array);
-        var average = getAverageVolume(array)
+      // var value = 0;
+      // //Iterate through the bars and scale the z axis
+      // for (var i = 0; i < 60; i++) {
+      //     var temp = array[i * step] / 4;
+      //     value += temp < 1 ? 1 : temp;
+      //     console.log(value);
+      //     icosahedronMaterial.audioScale = value;
+      // }
+     // get the average, bincount is fftsize / 2
+      var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+      framework.audioAnalyser.getByteFrequencyData(array);
+      var average = getAverageVolume(array)
 
-        //console.log('VOLUME:' + average); //here's the volume
-        var newNoiseStrength = mapVolumeToNoiseStrength(average); 
-        //console.log(newNoiseStrength);
-        icosahedronMaterial.uniforms.noiseStrength.value = newNoiseStrength;
+      //console.log('VOLUME:' + average); //here's the volume
+      var newNoiseStrength = mapVolumeToNoiseStrength(average); 
+      //console.log(newNoiseStrength);
+      icosahedronMaterial.uniforms.noiseStrength.value = newNoiseStrength;
 
-    }
-    icosahedronMaterial.needsUpdate = true;
-    pauseTime = undefined;
-  } else {
-    console.log(pauseTime);
-    if (pauseTime == undefined) {
-      pauseTime = Date.now();
-    }
   }
+  icosahedronMaterial.needsUpdate = true;
 }
 
 // when the scene is done initializing, it will call onLoad, then on frame updates, call onUpdate

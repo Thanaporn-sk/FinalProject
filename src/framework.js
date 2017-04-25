@@ -90,27 +90,6 @@ function init(callback, update) {
     // add pausing functionality via spacebar
     window.addEventListener("keypress", keypress, false);
 
-    function keypress(e) {
-      console.log(framework.audioBuffer);
-      if (e.keyCode == 32 && framework.audioBuffer != undefined) {
-        if (!framework.paused) {
-          console.log("PAUSE");
-          framework.paused = true;
-          framework.audioSourceBuffer.stop();
-          // Measure how much time passed since the last pause.
-          framework.audioStartOffset += framework.audioContext.currentTime - framework.audioStartTime;
-        } else {
-          framework.paused = false;
-          framework.audioStartTime = framework.audioContext.currentTime;
-
-          createAndConnectAudioBuffer();
-          framework.audioSourceBuffer.buffer = framework.audioBuffer;
-          // Start playback, but make sure we stay in bound of the buffer.
-          framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
-        }
-      }
-    }
-
     function dragenter(e) {
       e.stopPropagation();
       e.preventDefault();
@@ -130,6 +109,25 @@ function init(callback, update) {
         // stop current visualization and load new song
         framework.audioSourceBuffer.stop();
         playAudio(e.dataTransfer.files[0]);
+      }
+    }
+
+    function keypress(e) {
+      if (e.keyCode == 32 && framework.audioBuffer != undefined) {
+        if (!framework.paused) {
+          framework.paused = true;
+          framework.audioSourceBuffer.stop();
+          // Measure how much time passed since the last pause.
+          framework.audioStartOffset += framework.audioContext.currentTime - framework.audioStartTime;
+        } else {
+          framework.paused = false;
+          framework.audioStartTime = framework.audioContext.currentTime;
+
+          createAndConnectAudioBuffer();
+          framework.audioSourceBuffer.buffer = framework.audioBuffer;
+          // Start playback, but make sure we stay in bound of the buffer.
+          framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
+        }
       }
     }
 
