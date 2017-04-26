@@ -6,7 +6,7 @@ Using:
 - Web Audio API
 - Three.js
 - Node.js 
-- Meyda? (for extracting information from audio)
+- web-audio-beat-detector
 
 Ideas for visualizations: 
 - Basic noise cloud (adapted from HW#1)
@@ -14,14 +14,21 @@ Ideas for visualizations:
 - Moving line with perturbations driven by amplitude of music
 
 To-do:
-- Be able to upload audio file
-- Be able to extract useful information from audio file, e.g.:
+- Be able to pause --> DONE 
+	- use spacebar to pause the visualization and music (without getting rid of the baseline visuals)
+- Be able to extract useful information from audio file, e.g.: --> DONE
 	- frequency
 	- amplitude/loudness
 	- note?
 	- tempo (BPM)
-- Have at least 4 different visualizations
-- Implement camera controller or controller that switches between visualizations at appropiate points in the music
+- Have at least 4 different interesting visualizations --> 2/4 DONE 
+- ~Implement camera controller or controller that switches between visualizations at appropiate points in the music~
+- Implement framework for switching between multiple scenes with their own cameras --> DONE 
+	- use '0' and '1' on the keyboard to switch manually between current visualizations 
+- Implement automatic switching between visualizations in response to the music 
+- Add color to at least one of the visualizations
+- Stretch: make and/or use a different custom shader for one of the visualizations
+- Stretch: more interesting/aesthetically pleasing visuals
 
 Original design doc: https://docs.google.com/document/d/13P_lAncqpzsyP1C5bAflfCYHUtCnb10DHtbcka17JA4/edit?usp=sharing
 
@@ -32,8 +39,6 @@ Useful links:
 - https://www.airtightinteractive.com/2013/10/making-audio-reactive-visuals/
 - https://www.npmjs.com/package/web-audio-beat-detector
 - https://github.com/notthetup/awesome-webaudio
-- https://github.com/hughrawlinson/meyda/wiki/Audio-Features
-- https://github.com/tornqvist/bpm-detective
 - http://joesul.li/van/beat-detection-using-web-audio/
 - http://stackoverflow.com/questions/21247571/how-to-get-microphone-input-volume-value-with-web-audio-api
 - http://stackoverflow.com/questions/345187/math-mapping-numbers
@@ -48,5 +53,13 @@ Useful links:
 - http://chimera.labs.oreilly.com/books/1234000001552/ch03.html#s03_2
 http://chimera.labs.oreilly.com/books/1234000000802/ch04.html#deferred_rendering
 - https://threejs.org/examples/webgl_geometry_extrude_splines.html
-- https://github.com/fernandojsg/three.js-demos/blob/master/crossfade/js/scenes.js
 - http://stemkoski.github.io/Three.js/#viewports-dual
+
+More inspiration:
+- http://hughsk.io/popcorn/
+- http://mattdesl.github.io/codevember/21.html
+- http://www.dennis.video/ 
+- https://www.uberviz.io/viz/splice/
+- http://jojo.ninja/fluctus/
+- http://www.michaelbromley.co.uk/experiments/soundcloud-vis/#griffinmcelroy/sets/the-adventure-zone-ost
+- https://tariqksoliman.github.io/Vissonance/
