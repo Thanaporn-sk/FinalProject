@@ -1,4 +1,4 @@
-{
+ {
   "scripts": {
     "start": "webpack-dev-server --hot --inline",
     "build": "webpack",
@@ -11,6 +11,7 @@
     "noprompt": true
   },
   "dependencies": {
+    "web-audio-beat-detector": "^2.0.0",
     "dat-gui": "^0.5.0",
     "gl-matrix": "^2.3.2",
     "stats-js": "^1.0.0-alpha1",
