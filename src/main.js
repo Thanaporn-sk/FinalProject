@@ -1,61 +1,27 @@
 
 const THREE = require('three'); // older modules are imported like this. You shouldn't have to worry about this much
 import Framework from './framework'
+import Scenes from './scenes'
 
-// used to animate the icosahedron
-var programStartTime;
 // used to keep track of animations when paused
 var pauseTime;
 
-var icosahedronMaterial = new THREE.ShaderMaterial({
-  uniforms: {
-      time: { // Check the Three.JS documentation for the different allowed types and values
-        type: "f", 
-        value: Date.now()
-      },
-      noiseStrength: {
-        type: "f",
-        value: 2.0
-      }, 
-      numOctaves: {
-        type: "f",
-        value: 3
-      },
-      audioScale: {
-        type: "f",
-        value: 1
-      }
-    },
-    vertexShader: require('./shaders/my-vert.glsl'),
-    fragmentShader: require('./shaders/my-frag.glsl')
-  });
+var currentVisualizer;
 
 // called after the scene loads
 function onLoad(framework) {
-  programStartTime = Date.now();
-  var scene = framework.scene;
-  var camera = framework.camera;
+  Scenes.initializeAllScenes();
+
+  currentVisualizer = Scenes.getScene("icosahedron");
+  var scene = currentVisualizer.scene;
+  var camera = currentVisualizer.camera;
+  framework.scene = scene;
+  framework.camera = camera;
   var renderer = framework.renderer;
   var gui = framework.gui;
 
   // LOOK: the line below is syntactic sugar for the code above. Optional, but I sort of recommend it.
   // var {scene, camera, renderer, gui, stats} = framework; 
-
-  // initialize icosahedron object
-  var guiFields = {
-    icosahedronDetail: 3, 
-    noiseStrength: 2.0,
-    numOctaves: 3
-  }
-
-  var icosahedronGeometry = new THREE.IcosahedronGeometry(1, guiFields.icosahedronDetail);
-
-  var texturedIcosahedron = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
-  scene.add(texturedIcosahedron);
-  
-  // set camera position
-  camera.position.set(1, 1, 5);
-  camera.lookAt(new THREE.Vector3(0,0,0));
 
   // edit params and listen to changes like this
   // more information here: https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage
@@ -64,58 +30,11 @@ function onLoad(framework) {
   });
 }
 
-function getAverageVolume(array) {
-      var values = 0;
-      var average;
-
-      var length = array.length;
-
-      // get all the frequency amplitudes
-      for (var i = 0; i < length; i++) {
-          values += array[i];
-      }
-
-      average = values / length;
-      return average;
-}
-
-function mapVolumeToNoiseStrength(vol) {
-  // map range from 0 -> 150 to 4 -> 1
-  var result = vol / 150 * (1 - 4) + 4;
-  return result;
-}
-
 // called on frame updates
 function onUpdate(framework) {
-  icosahedronMaterial.uniforms.time.value = Date.now() - programStartTime;
-
-  // get the average for the first channel
-  if (framework.audioSourceBuffer.buffer != undefined) {
-      // var array = new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-      // framework.audioAnalyser.getByteFrequencyData(array);
-
-      // var step = Math.round(array.length / 60);
-
-      // var value = 0;
-      // //Iterate through the bars and scale the z axis
-      // for (var i = 0; i < 60; i++) {
-      //     var temp = array[i * step] / 4;
-      //     value += temp < 1 ? 1 : temp;
-      //     console.log(value);
-      //     icosahedronMaterial.audioScale = value;
-      // }
-     // get the average, bincount is fftsize / 2
-      var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-      framework.audioAnalyser.getByteFrequencyData(array);
-      var average = getAverageVolume(array)
-
-      //console.log('VOLUME:' + average); //here's the volume
-      var newNoiseStrength = mapVolumeToNoiseStrength(average); 
-      //console.log(newNoiseStrength);
-      icosahedronMaterial.uniforms.noiseStrength.value = newNoiseStrength;
-
+  if (currentVisualizer != undefined) {
+    currentVisualizer.onUpdate(framework);
   }
-  icosahedronMaterial.needsUpdate = true;
 }
 
 // when the scene is done initializing, it will call onLoad, then on frame updates, call onUpdate

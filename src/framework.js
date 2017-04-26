@@ -139,7 +139,7 @@ function init(callback, update) {
     // begin the animation loop
     (function tick() {
       update(framework); // perform any requested updates
-      renderer.render(scene, camera); // render the scene
+      renderer.render(framework.scene, framework.camera); // render the scene
       requestAnimationFrame(tick); // register to call this again when the browser renders a new frame
     })();
 
