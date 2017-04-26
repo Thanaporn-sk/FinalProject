@@ -10,7 +10,7 @@ var currentVisualizer;
 
 // called after the scene loads
 function onLoad(framework) {
-  Scenes.initializeAllScenes();
+  Scenes.initializeAllScenes(framework);
 
   currentVisualizer = Scenes.getScene("icosahedron");
   var scene = currentVisualizer.scene;

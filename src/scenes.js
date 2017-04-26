@@ -1,4 +1,5 @@
 const THREE = require('three');
+const OrbitControls = require('three-orbit-controls')(THREE);
 import Framework from './framework'
 
 var allScenes = [];
@@ -13,14 +14,23 @@ function getScene(sceneName) {
     }
 }
 
-function initializeAllScenes() {
+function initializeAllScenes(framework) {
     programStartTime = Date.now();
-    initializeIcosahedron();
+    initializeIcosahedron(framework);
+    initializeStarField(framework);
 }
 
-function initializeIcosahedron() {
+function initializeIcosahedron(framework) {
 	var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+    var controls = new OrbitControls(camera, framework.renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = true;
+    controls.target.set(0, 0, 0);
+    controls.rotateSpeed = 0.3;
+    controls.zoomSpeed = 1.0;
+    controls.panSpeed = 2.0;
+
     var icosahedronMaterial = new THREE.ShaderMaterial({
       uniforms: {
           time: { // Check the Three.JS documentation for the different allowed types and values
@@ -97,6 +107,10 @@ function initializeIcosahedron() {
     }
 
     allScenes.push(icosahedronScene);
+}
+
+function initializeStarField() {
+
 }
 
 function getAverageVolume(array) {

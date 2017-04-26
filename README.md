@@ -46,5 +46,7 @@ Useful links:
 - http://stackoverflow.com/questions/14789283/what-does-the-fft-data-in-the-web-audio-api-correspond-to
 - http://www.liutaiomottola.com/formulae/freqtab.htm
 - http://chimera.labs.oreilly.com/books/1234000001552/ch03.html#s03_2
+http://chimera.labs.oreilly.com/books/1234000000802/ch04.html#deferred_rendering
 - https://threejs.org/examples/webgl_geometry_extrude_splines.html
 - https://github.com/fernandojsg/three.js-demos/blob/master/crossfade/js/scenes.js
+- http://stemkoski.github.io/Three.js/#viewports-dual
