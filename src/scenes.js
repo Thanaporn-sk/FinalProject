@@ -142,11 +142,6 @@ function initializeStarField() {
       scene.add(b);
     }
 
-    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    var cube = new THREE.Mesh( geometry, material );
-    scene.add( cube );
-
     camera.position.z = 5;
 
     var starfieldScene = {
@@ -158,16 +153,18 @@ function initializeStarField() {
             if (camPosIndex > 10000) {
                 camPosIndex = 0;
             }
+            var offset = 0;
+            if (framework.audioSourceBuffer.buffer != undefined) {
+                var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+                framework.audioAnalyser.getByteFrequencyData(array);
+                offset = getAverageVolume(array);
+            }
+
             var camPos = spline.getPoint(camPosIndex / 10000);
-            var camRot = spline.getTangent(camPosIndex / 10000);
 
-            framework.camera.position.x = camPos.x;
-            framework.camera.position.y = camPos.y;
-            framework.camera.position.z = camPos.z;
-
-            framework.camera.rotation.x = camRot.x;
-            framework.camera.rotation.y = camRot.y;
-            framework.camera.rotation.z = camRot.z;
+            framework.camera.position.x = camPos.x + offset;
+            framework.camera.position.y = camPos.y + offset;
+            framework.camera.position.z = camPos.z + offset;
 
             framework.camera.lookAt(spline.getPoint((camPosIndex+1) / 10000));
         }
