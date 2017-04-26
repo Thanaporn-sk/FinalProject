@@ -120,6 +120,14 @@ function init(callback, update) {
           framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
         }
       }
+      if (e.keyCode == 48) {
+        framework.visualizerIndex = 0;
+        console.log(framework.visualizerIndex);
+      }
+      if (e.keyCode == 49) {
+        framework.visualizerIndex = 1;
+        console.log(framework.visualizerIndex);
+      }
     }
 
     // assign THREE.js objects to the object we will return

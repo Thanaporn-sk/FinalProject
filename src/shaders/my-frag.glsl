@@ -12,5 +12,5 @@ void main() {
   float b = linearInterpolate(0.0, 0.9, vNoise); 
 
   gl_FragColor = vec4(r, g, b, 1.0);
-  gl_FragColor = vec4(vNormal.rgb, 1.0);
+  //gl_FragColor = vec4(vNormal.rgb, 1.0);
 }

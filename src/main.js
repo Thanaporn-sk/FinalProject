@@ -3,20 +3,16 @@ const THREE = require('three'); // older modules are imported like this. You sho
 import Framework from './framework'
 import Scenes from './scenes'
 
-// used to keep track of animations when paused
-var pauseTime;
-
 var currentVisualizer;
 
 // called after the scene loads
 function onLoad(framework) {
   Scenes.initializeAllScenes(framework);
 
-  currentVisualizer = Scenes.getScene("icosahedron");
-  var scene = currentVisualizer.scene;
-  var camera = currentVisualizer.camera;
-  framework.scene = scene;
-  framework.camera = camera;
+  //currentVisualizer = Scenes.getScene("icosahedron");
+  currentVisualizer = Scenes.getScene("starfield");
+  framework.scene = currentVisualizer.scene;
+  framework.camera = currentVisualizer.camera;
   var renderer = framework.renderer;
   var gui = framework.gui;
 
@@ -25,14 +21,20 @@ function onLoad(framework) {
 
   // edit params and listen to changes like this
   // more information here: https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage
-  gui.add(camera, 'fov', 0, 180).onChange(function(newVal) {
-    camera.updateProjectionMatrix();
+  gui.add(framework.camera, 'fov', 0, 180).onChange(function(newVal) {
+    framework.camera.updateProjectionMatrix();
   });
 }
 
 // called on frame updates
 function onUpdate(framework) {
   if (currentVisualizer != undefined) {
+    if (framework.visualizerIndex != undefined && currentVisualizer.index != framework.visualizerIndex) {
+      currentVisualizer = Scenes.getSceneByIndex(framework.visualizerIndex);
+      framework.scene = currentVisualizer.scene;
+      framework.camera = currentVisualizer.camera;
+    }
+
     currentVisualizer.onUpdate(framework);
   }
 }

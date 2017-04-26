@@ -14,10 +14,17 @@ function getScene(sceneName) {
     }
 }
 
+function getSceneByIndex(sceneIndex) {
+    return allScenes[sceneIndex];
+}
+
 function initializeAllScenes(framework) {
     programStartTime = Date.now();
     initializeIcosahedron(framework);
     initializeStarField(framework);
+    for (var i = 0; i < allScenes.length; i++) {
+        allScenes[i].index = i;
+    }
 }
 
 function initializeIcosahedron(framework) {
@@ -110,7 +117,63 @@ function initializeIcosahedron(framework) {
 }
 
 function initializeStarField() {
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
 
+    var randomPoints = [];
+    for ( var i = 0; i < 100; i ++ ) {
+        randomPoints.push(
+            new THREE.Vector3(Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100)
+        );
+    }
+    var spline = new THREE.SplineCurve3(randomPoints);
+    var camPosIndex = 0;
+
+    for (var i = 0; i < 400; i++) {
+      var b = new THREE.Mesh(
+        new THREE.BoxGeometry(1,1,1),
+        new THREE.MeshBasicMaterial({color: "#EEEDDD"})
+      );
+      
+      b.position.x = -300 + Math.random() * 600;
+      b.position.y = -300 + Math.random() * 600;  
+      b.position.z = -300 + Math.random() * 600;
+      
+      scene.add(b);
+    }
+
+    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    var cube = new THREE.Mesh( geometry, material );
+    scene.add( cube );
+
+    camera.position.z = 5;
+
+    var starfieldScene = {
+        name: 'starfield',
+        scene: scene,
+        camera: camera,
+        onUpdate: function(framework) {
+            camPosIndex++;
+            if (camPosIndex > 10000) {
+                camPosIndex = 0;
+            }
+            var camPos = spline.getPoint(camPosIndex / 10000);
+            var camRot = spline.getTangent(camPosIndex / 10000);
+
+            framework.camera.position.x = camPos.x;
+            framework.camera.position.y = camPos.y;
+            framework.camera.position.z = camPos.z;
+
+            framework.camera.rotation.x = camRot.x;
+            framework.camera.rotation.y = camRot.y;
+            framework.camera.rotation.z = camRot.z;
+
+            framework.camera.lookAt(spline.getPoint((camPosIndex+1) / 10000));
+        }
+    }
+
+    allScenes.push(starfieldScene);
 }
 
 function getAverageVolume(array) {
@@ -136,5 +199,6 @@ function mapVolumeToNoiseStrength(vol) {
 
 export default {
   initializeAllScenes: initializeAllScenes,
-  getScene: getScene
+  getScene: getScene,
+  getSceneByIndex: getSceneByIndex
 }
