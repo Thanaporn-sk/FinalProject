@@ -10,7 +10,7 @@ function onLoad(framework) {
   Scenes.initializeAllScenes(framework);
 
   //currentVisualizer = Scenes.getScene("icosahedron");
-  currentVisualizer = Scenes.getScene("starfield");
+  currentVisualizer = Scenes.getScene("spiral");
   framework.scene = currentVisualizer.scene;
   framework.camera = currentVisualizer.camera;
   var renderer = framework.renderer;
