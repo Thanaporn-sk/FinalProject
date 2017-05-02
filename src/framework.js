@@ -39,6 +39,7 @@ function init(callback, update) {
           framework.audioSourceBuffer.buffer = buffer;
           framework.audioBuffer = buffer;
           framework.audioSourceBuffer.start();
+          framework.audioSourceBuffer.loop = true;
           detectBeat(framework.audioSourceBuffer.buffer).then((bpm) => {
               // the bpm could be analyzed 
               console.log(bpm);
@@ -128,6 +129,7 @@ function init(callback, update) {
           framework.audioSourceBuffer.buffer = framework.audioBuffer;
           // Start playback, but make sure we stay in bound of the buffer.
           framework.audioSourceBuffer.start(0, framework.audioStartOffset % framework.audioBuffer.duration);
+          framework.audioSourceBuffer.loop = true;
         }
       }
       if (e.keyCode == 48) {
@@ -136,6 +138,10 @@ function init(callback, update) {
       }
       if (e.keyCode == 49) {
         framework.visualizerIndex = 1;
+        console.log(framework.visualizerIndex);
+      }
+      if (e.keyCode == 50) {
+        framework.visualizerIndex = 2;
         console.log(framework.visualizerIndex);
       }
     }

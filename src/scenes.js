@@ -22,9 +22,78 @@ function initializeAllScenes(framework) {
     programStartTime = Date.now();
     initializeIcosahedron(framework);
     initializeStarField(framework);
+    initializeSpiral(framework);
+
     for (var i = 0; i < allScenes.length; i++) {
         allScenes[i].index = i;
     }
+}
+
+var tanh = Math.tanh || function tanh(x) {
+    return (Math.exp(x) - Math.exp(-x)) / (Math.exp(x) + Math.exp(-x));
+}; 
+var cosh = Math.cosh || function cosh(x) {
+    return (Math.exp(x) + Math.exp(-x)) / 2;
+}; 
+var sinh = Math.sinh || function sinh(x) {
+    return (Math.exp(x) - Math.exp(-x)) / 2;
+};
+
+function initializeSpiral(framework) {
+  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  camera.position.set(50, 50, 50);
+  camera.lookAt(new THREE.Vector3(0,0,0));
+
+  var controls = new OrbitControls(camera, framework.renderer.domElement);
+  controls.enableDamping = true;
+  controls.enableZoom = true;
+  controls.target.set(0, 0, 0);
+  controls.rotateSpeed = 0.3;
+  controls.zoomSpeed = 1.0;
+  controls.panSpeed = 2.0;
+  
+  var scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0x333333));
+  
+  var geometry = new THREE.Geometry();
+  
+  // sphere spiral
+  var sz = 16, cxy = 100, cz = cxy * sz;
+  var hxy = Math.PI / cxy, hz = Math.PI / cz;
+  var r = 20;
+  for (var i = -cz; i < cz; i++) {
+      var lxy = i * hxy;
+      var lz = i * hz;
+      var rxy = r / Math.cosh(lz);
+      var x = rxy * Math.cos(lxy);
+      var y = rxy * Math.sin(lxy);
+      var z = r * Math.tanh(lz);
+      geometry.vertices.push(new THREE.Vector3(x, y, z));
+  }
+
+  var obj = new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x339900}));
+  obj.name = "spiral";
+  scene.add(obj);
+
+  var spiralScene = {
+        name: 'spiral',
+        scene: scene,
+        camera: camera,
+        onUpdate: function(framework) {
+          var offset = 0.05;
+            if (framework.audioSourceBuffer.buffer != undefined) {
+                var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+                framework.audioAnalyser.getByteFrequencyData(array);
+                offset = getAverageVolume(array)/250;
+            }
+
+          var spiral = framework.scene.getObjectByName("spiral");
+          spiral.rotation.z += offset;
+          spiral.geometry.verticesNeedUpdate = true;
+        }
+    }
+
+    allScenes.push(spiralScene);
 }
 
 function initializeIcosahedron(framework) {
@@ -63,9 +132,9 @@ function initializeIcosahedron(framework) {
 
     // initialize icosahedron object
     var guiFields = {
-    icosahedronDetail: 3, 
-    noiseStrength: 2.0,
-    numOctaves: 3
+      icosahedronDetail: 3, 
+      noiseStrength: 2.0,
+      numOctaves: 3
     }
 
     var icosahedronGeometry = new THREE.IcosahedronGeometry(1, guiFields.icosahedronDetail);
