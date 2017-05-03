@@ -108,24 +108,8 @@ function getRandomMaterial() {
   }
 }
 
-function animateCamera(framework, scale) {
+function animateCamera(framework, scale, pipeSpline) {
   var splineCamera = framework.camera;
-  var pipeSpline = new THREE.CatmullRomCurve3( [
-        new THREE.Vector3( 0, 10, -10 ), new THREE.Vector3( 10, 0, -10 ),
-        new THREE.Vector3( 20, 0, 0 ), new THREE.Vector3( 30, 0, 10 ),
-        new THREE.Vector3( 30, 0, 20 ), new THREE.Vector3( 20, 0, 30 ),
-        new THREE.Vector3( 10, 0, 30 ), new THREE.Vector3( 0, 0, 30 ),
-        new THREE.Vector3( -10, 10, 30 ), new THREE.Vector3( -10, 20, 30 ),
-        new THREE.Vector3( 0, 30, 30 ), new THREE.Vector3( 10, 30, 30 ),
-        new THREE.Vector3( 20, 30, 15 ), new THREE.Vector3( 10, 30, 10 ),
-        new THREE.Vector3( 0, 30, 10 ), new THREE.Vector3( -10, 20, 10 ),
-        new THREE.Vector3( -10, 10, 10 ), new THREE.Vector3( 0, 0, 10 ),
-        new THREE.Vector3( 10, -10, 10 ), new THREE.Vector3( 20, -15, 10 ),
-        new THREE.Vector3( 30, -15, 10 ), new THREE.Vector3( 40, -15, 10 ),
-        new THREE.Vector3( 50, -15, 10 ), new THREE.Vector3( 60, 0, 10 ),
-        new THREE.Vector3( 70, 0, 0 ), new THREE.Vector3( 80, 0, 0 ),
-        new THREE.Vector3( 90, 0, 0 ), new THREE.Vector3( 100, 0, 0 )
-    ] );
   var tubeGeometry = new THREE.TubeBufferGeometry(pipeSpline, 100, 2, 3, true);
   var binormal = new THREE.Vector3();
   var normal = new THREE.Vector3();
@@ -164,6 +148,23 @@ function initializeGeomGeneration(framework) {
   var scene = new THREE.Scene();
   scene.background = new THREE.Color( 'whitesmoke' );
   scene.add(new THREE.AmbientLight(0x333333));
+
+  var pipeSpline = new THREE.CatmullRomCurve3( [
+      new THREE.Vector3( 0, 10, -10 ), new THREE.Vector3( 10, 0, -10 ),
+      new THREE.Vector3( 20, 0, 0 ), new THREE.Vector3( 30, 0, 10 ),
+      new THREE.Vector3( 30, 0, 20 ), new THREE.Vector3( 20, 0, 30 ),
+      new THREE.Vector3( 10, 0, 30 ), new THREE.Vector3( 0, 0, 30 ),
+      new THREE.Vector3( -10, 10, 30 ), new THREE.Vector3( -10, 20, 30 ),
+      new THREE.Vector3( 0, 30, 30 ), new THREE.Vector3( 10, 30, 30 ),
+      new THREE.Vector3( 20, 30, 15 ), new THREE.Vector3( 10, 30, 10 ),
+      new THREE.Vector3( 0, 30, 10 ), new THREE.Vector3( -10, 20, 10 ),
+      new THREE.Vector3( -10, 10, 10 ), new THREE.Vector3( 0, 0, 10 ),
+      new THREE.Vector3( 10, -10, 10 ), new THREE.Vector3( 20, -15, 10 ),
+      new THREE.Vector3( 30, -15, 10 ), new THREE.Vector3( 40, -15, 10 ),
+      new THREE.Vector3( 50, -15, 10 ), new THREE.Vector3( 60, 0, 10 ),
+      new THREE.Vector3( 70, 0, 0 ), new THREE.Vector3( 80, 0, 0 ),
+      new THREE.Vector3( 90, 0, 0 ), new THREE.Vector3( 100, 0, 0 )
+  ] );
 
   var geomScene = {
         name: 'geoms',
@@ -242,7 +243,7 @@ function initializeGeomGeneration(framework) {
                 }
               }
             } 
-            animateCamera(framework, 0.75); 
+            animateCamera(framework, 0.5, pipeSpline); 
           }
     }
 
@@ -303,6 +304,16 @@ function initializeSpiral(framework) {
     scene.add(obj);
   }
 
+  var sampleClosedSpline = new THREE.CatmullRomCurve3( [
+    new THREE.Vector3( -75, 0, -75 ),
+    new THREE.Vector3( 75, 0, -75 ),
+    new THREE.Vector3( 175, 0, -75 ),
+    new THREE.Vector3( 75, 0, 75 ),
+    new THREE.Vector3( -75,0, 75 )
+  ] );
+  sampleClosedSpline.type = 'catmullrom';
+  sampleClosedSpline.closed = true;
+
   var spiralScene = {
         name: 'spiral',
         scene: scene,
@@ -323,7 +334,7 @@ function initializeSpiral(framework) {
                 value = value < 1 ? 1 : value;
                 spiral.rotation.z += value/100;
                 spiral.geometry.verticesNeedUpdate = true;
-                if (timeIsOnBeat(framework, 10)) {
+                if (timeIsOnBeat(framework, 10) && (i % getRandomInt(2,7) == 0)) {
                   var scale = 1; 
                   if (volume > 50) { 
                     scale = volume/50;
@@ -340,6 +351,8 @@ function initializeSpiral(framework) {
                 //spiral.material.color.setStyle(getRandomColor());
               }
             }
+            animateCamera(framework, 1, sampleClosedSpline); 
+            framework.camera.lookAt(new THREE.Vector3(0,0,0));
         }
     }
 
