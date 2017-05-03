@@ -108,6 +108,54 @@ function getRandomMaterial() {
   }
 }
 
+function animateCamera(framework, scale) {
+  var splineCamera = framework.camera;
+  var pipeSpline = new THREE.CatmullRomCurve3( [
+        new THREE.Vector3( 0, 10, -10 ), new THREE.Vector3( 10, 0, -10 ),
+        new THREE.Vector3( 20, 0, 0 ), new THREE.Vector3( 30, 0, 10 ),
+        new THREE.Vector3( 30, 0, 20 ), new THREE.Vector3( 20, 0, 30 ),
+        new THREE.Vector3( 10, 0, 30 ), new THREE.Vector3( 0, 0, 30 ),
+        new THREE.Vector3( -10, 10, 30 ), new THREE.Vector3( -10, 20, 30 ),
+        new THREE.Vector3( 0, 30, 30 ), new THREE.Vector3( 10, 30, 30 ),
+        new THREE.Vector3( 20, 30, 15 ), new THREE.Vector3( 10, 30, 10 ),
+        new THREE.Vector3( 0, 30, 10 ), new THREE.Vector3( -10, 20, 10 ),
+        new THREE.Vector3( -10, 10, 10 ), new THREE.Vector3( 0, 0, 10 ),
+        new THREE.Vector3( 10, -10, 10 ), new THREE.Vector3( 20, -15, 10 ),
+        new THREE.Vector3( 30, -15, 10 ), new THREE.Vector3( 40, -15, 10 ),
+        new THREE.Vector3( 50, -15, 10 ), new THREE.Vector3( 60, 0, 10 ),
+        new THREE.Vector3( 70, 0, 0 ), new THREE.Vector3( 80, 0, 0 ),
+        new THREE.Vector3( 90, 0, 0 ), new THREE.Vector3( 100, 0, 0 )
+    ] );
+  var tubeGeometry = new THREE.TubeBufferGeometry(pipeSpline, 100, 2, 3, true);
+  var binormal = new THREE.Vector3();
+  var normal = new THREE.Vector3();
+
+  // animate camera along spline
+  var time = Date.now();
+  var looptime = 20 * 1000;
+  var t = ( time % looptime ) / looptime;
+  var pos = tubeGeometry.parameters.path.getPointAt( t );
+  pos.multiplyScalar(scale);
+  // interpolation
+  var segments = tubeGeometry.tangents.length;
+  var pickt = t * segments;
+  var pick = Math.floor( pickt );
+  var pickNext = ( pick + 1 ) % segments;
+  binormal.subVectors( tubeGeometry.binormals[ pickNext ], tubeGeometry.binormals[ pick ] );
+  binormal.multiplyScalar( pickt - pick ).add( tubeGeometry.binormals[ pick ] );
+  var dir = tubeGeometry.parameters.path.getTangentAt( t );
+  var offset = 15;
+  normal.copy( binormal ).cross( dir );
+  // we move on a offset on its binormal
+  pos.add( normal.clone().multiplyScalar( offset ) );
+  splineCamera.position.copy( pos );
+  // using arclength for stablization in look ahead
+  var lookAt = tubeGeometry.parameters.path.getPointAt( ( t + 30 / tubeGeometry.parameters.path.getLength() ) % 1 ).multiplyScalar(scale);
+  // camera orientation 2 - up orientation via normal
+  splineCamera.matrix.lookAt( splineCamera.position, lookAt, normal );
+  splineCamera.rotation.setFromRotationMatrix(splineCamera.matrix, splineCamera.rotation.order);
+}
+
 function initializeGeomGeneration(framework) {
   var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000 );
   camera.position.set(5, 5, 5);
@@ -116,14 +164,6 @@ function initializeGeomGeneration(framework) {
   var scene = new THREE.Scene();
   scene.background = new THREE.Color( 'whitesmoke' );
   scene.add(new THREE.AmbientLight(0x333333));
-
-  var controls = new OrbitControls(camera, framework.renderer.domElement);
-  controls.enableDamping = true;
-  controls.enableZoom = true;
-  controls.target.set(0, 0, 0);
-  controls.rotateSpeed = 0.3;
-  controls.zoomSpeed = 1.0;
-  controls.panSpeed = 2.0;
 
   var geomScene = {
         name: 'geoms',
@@ -141,9 +181,9 @@ function initializeGeomGeneration(framework) {
                 for (var c = 0; c < framework.scene.children.length; c++) {
                   framework.scene.remove(framework.scene.getObjectByName("cube"+c));
                 }
-                for (var i = 0; i < offset/10; i++) {
+                for (var i = 0; i < offset/2; i++) {
                   var geometry =  getRandomGeometryShape();
-                  geometry.translate(getRandomArbitrary(-15,16), getRandomArbitrary(-15,16), getRandomArbitrary(-15,16));
+                  geometry.translate(getRandomArbitrary(-15,50), getRandomArbitrary(-15,50), getRandomArbitrary(-15,50));
                   var material = getRandomMaterial();
                   var object = new THREE.Mesh( geometry, material );
                   var scale = 1; 
@@ -202,6 +242,7 @@ function initializeGeomGeneration(framework) {
                 }
               }
             } 
+            animateCamera(framework, 0.75); 
           }
     }
 
