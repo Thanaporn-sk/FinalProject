@@ -182,14 +182,15 @@ function initializeGeomGeneration(framework) {
                 for (var c = 0; c < framework.scene.children.length; c++) {
                   framework.scene.remove(framework.scene.getObjectByName("cube"+c));
                 }
-                for (var i = 0; i < offset/2; i++) {
+                for (var i = 0; i < offset; i++) {
                   var geometry =  getRandomGeometryShape();
-                  geometry.translate(getRandomArbitrary(-15,50), getRandomArbitrary(-15,50), getRandomArbitrary(-15,50));
+                  geometry.translate(getRandomArbitrary(-100,100), getRandomArbitrary(-100,100), getRandomArbitrary(-100,100));
                   var material = getRandomMaterial();
                   var object = new THREE.Mesh( geometry, material );
+
                   var scale = 1; 
-                  if (offset > 50) { 
-                    scale = offset/50;
+                  if (offset > 20) { 
+                    scale = offset/20;
                   }
                   object.scale.set(scale, scale, scale);
 
@@ -223,6 +224,7 @@ function initializeGeomGeneration(framework) {
                   object.name = cubeName;
                   framework.scene.add(object);
                 }
+                framework.cameraPaused == true;
               } else if (timeIsOnBeat, 1) {
                 for (var i = 0; i < framework.scene.children.length; i++) {
                   var object = framework.scene.getObjectByName("cube"+i);
@@ -237,13 +239,16 @@ function initializeGeomGeneration(framework) {
                       object.rotation.z += offset/2000;
                     }
                     if (random == 0){
-                      object.scale.set(offset/100, offset/100, offset/100);
+                      object.scale.set(offset/20, offset/20, offset/20);
                     }
                   }
                 }
               }
             } 
-            animateCamera(framework, 0.5, pipeSpline); 
+            if (!framework.cameraPaused) {
+              animateCamera(framework, 1, pipeSpline); 
+              framework.camera.lookAt(new THREE.Vector3(0,0,0));
+            }
           }
     }
 
@@ -268,6 +273,16 @@ function createSpiralGeometryWithNoise(noiseLevel) {
   return geometry;
 }
 
+var sampleClosedSpline = new THREE.CatmullRomCurve3( [
+  new THREE.Vector3( -100, 0, -0 ),
+  new THREE.Vector3( 0, 0, 100 ),
+  new THREE.Vector3( 100, 0, 0),
+  new THREE.Vector3( 0, 0, -100 )
+] );
+sampleClosedSpline.type = 'catmullrom';
+sampleClosedSpline.closed = true;
+
+
 function initializeSpiral(framework) {
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 2000 );
   camera.position.set(-100, 0, 0);
@@ -286,7 +301,7 @@ function initializeSpiral(framework) {
   
   var numSpirals = 60; 
 
-  var offset = 0.5;
+  var offset = 0.3;
   for (var s = 0; s < numSpirals; s++) {
     var randomInt = getRandomInt(0, 2);
     var geometry; 
@@ -303,16 +318,6 @@ function initializeSpiral(framework) {
     obj.name = spiralName;
     scene.add(obj);
   }
-
-  var sampleClosedSpline = new THREE.CatmullRomCurve3( [
-    new THREE.Vector3( -75, 0, -75 ),
-    new THREE.Vector3( 75, 0, -75 ),
-    new THREE.Vector3( 175, 0, -75 ),
-    new THREE.Vector3( 75, 0, 75 ),
-    new THREE.Vector3( -75,0, 75 )
-  ] );
-  sampleClosedSpline.type = 'catmullrom';
-  sampleClosedSpline.closed = true;
 
   var spiralScene = {
         name: 'spiral',
@@ -334,13 +339,16 @@ function initializeSpiral(framework) {
                 value = value < 1 ? 1 : value;
                 spiral.rotation.z += value/100;
                 spiral.geometry.verticesNeedUpdate = true;
-                if (timeIsOnBeat(framework, 10) && (i % getRandomInt(2,7) == 0)) {
+                if (timeIsOnBeat(framework, 2) && (i % getRandomInt(2,7) == 0)) {
                   var scale = 1; 
                   if (volume > 50) { 
                     scale = volume/50;
                   }
                   spiral.scale.set(scale, scale, scale);
                 }
+              }
+              if (timeIsOnBeat(framework, 1)) {
+                framework.cameraPaused == true;
               }
             } else {
               for (var i = 0; i < numSpirals; i++) {
@@ -351,8 +359,10 @@ function initializeSpiral(framework) {
                 //spiral.material.color.setStyle(getRandomColor());
               }
             }
-            animateCamera(framework, 1, sampleClosedSpline); 
-            framework.camera.lookAt(new THREE.Vector3(0,0,0));
+            if (!framework.cameraPaused) {
+              animateCamera(framework, 1, sampleClosedSpline); 
+              framework.camera.lookAt(new THREE.Vector3(0,0,0));
+            }
         }
     }
 
@@ -403,7 +413,7 @@ function initializeIcosahedron(framework) {
     var icosahedronGeometry = new THREE.IcosahedronGeometry(1, guiFields.icosahedronDetail);
 
     var texturedIcosahedron = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
-    texturedIcosahedron.scale.set(20,20,20);
+    texturedIcosahedron.scale.set(15,15,15);
     scene.add(texturedIcosahedron);
 
     // set camera position
@@ -434,31 +444,41 @@ function initializeIcosahedron(framework) {
     allScenes.push(icosahedronScene);
 }
 
-function initializeStarField() {
+function initializeStarField(framework) {
     var scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2( 0x000000, 0.0007 );
     var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    camera.position.set(1, 1, -100);
+    camera.lookAt(new THREE.Vector3(0,0,0));
 
-    var randomPoints = [];
-    for ( var i = 0; i < 100; i ++ ) {
-        randomPoints.push(
-            new THREE.Vector3(Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100)
-        );
+    var particles, materials = [];
+    var geometry = new THREE.Geometry();
+    for ( var i = 0; i < 10000; i ++ ) {
+      var vertex = new THREE.Vector3();
+      vertex.x = getRandomArbitrary(-1000, 1000);
+      vertex.y = getRandomArbitrary(-10, 10);;
+      vertex.z = getRandomArbitrary(-1000, 1000);
+      geometry.vertices.push( vertex );
     }
-    var spline = new THREE.SplineCurve3(randomPoints);
-    var camPosIndex = 0;
+    var parameters = [
+      [ [1, 1, 0.5], 5 ],
+      [ [0.95, 1, 0.5], 4 ],
+      [ [0.90, 1, 0.5], 3 ],
+      [ [0.85, 1, 0.5], 2 ],
+      [ [0.80, 1, 0.5], 1 ]
+    ];
+    var color, size; 
+    for ( var i = 0; i < parameters.length; i ++ ) {
+      color = parameters[i][0];
+      size  = parameters[i][1];
+      materials[i] = new THREE.PointsMaterial( { size: size } );
+      particles = new THREE.Points( geometry, materials[i] );
+      particles.rotation.x = Math.random() * 6;
+      particles.rotation.y = Math.random() * 6;
+      particles.rotation.z = Math.random() * 6;
+      scene.add( particles );
+    }
 
-    for (var i = 0; i < 400; i++) {
-      var b = new THREE.Mesh(
-        new THREE.BoxGeometry(1,1,1),
-        new THREE.MeshBasicMaterial({color: "#EEEDDD"})
-      );
-      
-      b.position.x = -300 + Math.random() * 600;
-      b.position.y = -300 + Math.random() * 600;  
-      b.position.z = -300 + Math.random() * 600;
-      
-      scene.add(b);
-    }
 
     camera.position.z = 5;
 
@@ -467,24 +487,40 @@ function initializeStarField() {
         scene: scene,
         camera: camera,
         onUpdate: function(framework) {
-            camPosIndex++;
-            if (camPosIndex > 10000) {
-                camPosIndex = 0;
+          var time = Date.now() * 0.00005;
+          if (timeIsOnBeat(framework, 1)) {
+            for ( var i = 0; i < materials.length; i ++ ) {
+              color = parameters[i][0];
+              var h = color[0] + time * 2;
+              materials[i].color.setHSL( h, color[1], color[2] );
             }
-            var offset = 0;
-            if (framework.audioSourceBuffer.buffer != undefined) {
-                var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-                framework.audioAnalyser.getByteFrequencyData(array);
-                offset = getAverageVolume(array);
+          } else {
+            for ( var i = 0; i < framework.scene.children.length; i ++ ) {
+              var object = framework.scene.children[ i ];
+              if ( object instanceof THREE.Points ) {
+                object.rotation.y = time * ( i < 4 ? i + 1 : - ( i + 1 ) );
+              }
             }
+          }
 
-            var camPos = spline.getPoint(camPosIndex / 10000);
-
-            framework.camera.position.x = camPos.x + offset;
-            framework.camera.position.y = camPos.y + offset;
-            framework.camera.position.z = camPos.z + offset;
-
-            framework.camera.lookAt(spline.getPoint((camPosIndex+1) / 10000));
+          if (framework.audioSourceBuffer.buffer != undefined) {
+            var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+            framework.audioAnalyser.getByteFrequencyData(array);
+            for ( var i = 0; i < framework.scene.children.length; i ++ ) {
+              var object = framework.scene.children[ i ];
+              if ( object instanceof THREE.Points ) {
+                var offset;
+                if (offset < 100) {
+                  offset = 1; 
+                } else {
+                  offset = getAverageVolume(array)/100;
+                }
+                object.scale.set(offset, offset, offset);
+              }
+            }
+          }
+          animateCamera(framework, 1, sampleClosedSpline); 
+          framework.camera.lookAt(new THREE.Vector3(0,0,0));
         }
     }
 
@@ -517,5 +553,6 @@ export default {
   getScene: getScene,
   getSceneByIndex: getSceneByIndex,
   getNumScenes: getNumScenes,
-  getRandomInt: getRandomInt
+  getRandomInt: getRandomInt,
+  timeIsOnBeat: timeIsOnBeat
 }

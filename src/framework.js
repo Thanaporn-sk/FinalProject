@@ -14,7 +14,8 @@ function init(callback, update) {
     paused: false,
     audioStartOffset: 0,
     audioStartTime: 0,
-    audioBuffer: undefined
+    audioBuffer: undefined,
+    cameraPaused: false
   };
 
   function createAndConnectAudioBuffer() {
@@ -134,19 +135,22 @@ function init(callback, update) {
       }
       if (e.keyCode == 48) {
         framework.visualizerIndex = 0;
-        console.log(framework.visualizerIndex);
       }
       if (e.keyCode == 49) {
         framework.visualizerIndex = 1;
-        console.log(framework.visualizerIndex);
       }
       if (e.keyCode == 50) {
         framework.visualizerIndex = 2;
-        console.log(framework.visualizerIndex);
       }
       if (e.keyCode == 51) {
         framework.visualizerIndex = 3;
-        console.log(framework.visualizerIndex);
+      }
+      if (e.keyCode == 112) {
+        if (!framework.cameraPaused) {
+          framework.cameraPaused = true; 
+        } else {
+          framework.cameraPaused = false;
+        }
       }
     }
 
