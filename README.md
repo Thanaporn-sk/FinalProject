@@ -25,12 +25,13 @@ To-do:
 - ~Implement camera controller or controller that switches between visualizations at appropiate points in the music~
 - Implement framework for switching between multiple scenes with their own cameras --> DONE 
 	- use '0' and '1' on the keyboard to switch manually between current visualizations 
-- Implement automatic switching between visualizations in response to the music 
-- Add color to at least one of the visualizations
+- Implement automatic switching between visualizations in response to the music --> DONE
+- Add color to at least one of the visualizations --> DONE
 - Stretch: make and/or use a different custom shader for one of the visualizations
 - Stretch: more interesting/aesthetically pleasing visuals
 
 Original design doc: https://docs.google.com/document/d/13P_lAncqpzsyP1C5bAflfCYHUtCnb10DHtbcka17JA4/edit?usp=sharing
+Final report: https://docs.google.com/document/d/1I6gvRuBfne61IPXz5KhxU_N4pdzxq6v4I-XEtToPV70/edit?usp=sharing
 
 Useful links: 
 - http://stackoverflow.com/questions/153712/creating-music-visualizer
@@ -54,6 +55,7 @@ Useful links:
 - http://chimera.labs.oreilly.com/books/1234000000802/ch04.html#deferred_rendering
 - https://threejs.org/examples/webgl_geometry_extrude_splines.html
 - http://stemkoski.github.io/Three.js/#viewports-dual
+- https://rawgit.com/bellbind/c9d885349db114d98734/raw/spiral.html 
 
 More inspiration:
 - http://hughsk.io/popcorn/
