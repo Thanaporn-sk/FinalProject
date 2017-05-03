@@ -163,7 +163,18 @@ function initializeGeomGeneration(framework) {
             for (var i = 0; i < framework.scene.children.length; i++) {
               var object = framework.scene.getObjectByName("cube"+i);
               if (object != undefined) {
-                object.rotation.z += offset/1000;
+                var random = getRandomInt(0,3);
+                var num = i % 3;
+                if (num == 0) {
+                  object.rotation.x += offset/2000;
+                } else if (num == 1) {
+                  object.rotation.y += offset/2000;
+                } else if (num == 2) {
+                  object.rotation.z += offset/2000;
+                }
+                if (random == 0){
+                  object.scale.set(offset/50, offset/50, offset/50);
+                }
               }
             }
           }
