@@ -15,7 +15,8 @@ function init(callback, update) {
     audioStartOffset: 0,
     audioStartTime: 0,
     audioBuffer: undefined,
-    cameraPaused: false
+    cameraPaused: false,
+    automaticSwitchingOn: true
   };
 
   function createAndConnectAudioBuffer() {
@@ -115,6 +116,7 @@ function init(callback, update) {
     }
 
     function keypress(e) {
+      // spacebar
       if (e.keyCode == 32 && framework.audioBuffer != undefined) {
         if (!framework.paused) {
           framework.paused = true;
@@ -132,23 +134,45 @@ function init(callback, update) {
           framework.audioSourceBuffer.loop = true;
         }
       }
+      // 0
       if (e.keyCode == 48) {
         framework.visualizerIndex = 0;
       }
+      // 1
       if (e.keyCode == 49) {
         framework.visualizerIndex = 1;
       }
+      // 2
       if (e.keyCode == 50) {
         framework.visualizerIndex = 2;
       }
+      // 3
       if (e.keyCode == 51) {
         framework.visualizerIndex = 3;
       }
+      // p
       if (e.keyCode == 112) {
         if (!framework.cameraPaused) {
           framework.cameraPaused = true; 
         } else {
           framework.cameraPaused = false;
+        }
+      }
+      // s
+      if (e.keyCode == 115) {
+        if (!framework.automaticSwitchingOn) {
+          framework.automaticSwitchingOn = true; 
+        } else {
+          framework.automaticSwitchingOn = false; 
+        }
+      }
+      // t
+      if (e.keyCode == 116) {
+        // toggle instructions
+        if (document.getElementById('visualizerInfo').style.visibility == "hidden") {
+          document.getElementById('visualizerInfo').style.visibility = "visible";
+        } else {
+          document.getElementById('visualizerInfo').style.visibility = "hidden";
         }
       }
     }

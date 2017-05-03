@@ -41,13 +41,15 @@ function onUpdate(framework) {
       switchVisualizer(framework, framework.visualizerIndex);
     } 
     // switch automatically
-    if (Scenes.timeIsOnBeat(framework, 0.5)) {
-      var randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
-      while (randomNum == framework.visualizerIndex) {
-        randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
-      } 
-      //console.log("switched to " + randomNum); 
-      switchVisualizer(framework, randomNum);
+    if (framework.automaticSwitchingOn) {
+      if (Scenes.timeIsOnBeat(framework, 0.5)) {
+        var randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
+        while (randomNum == framework.visualizerIndex) {
+          randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
+        } 
+        //console.log("switched to " + randomNum); 
+        switchVisualizer(framework, randomNum);
+      }
     }
     currentVisualizer.onUpdate(framework);
   }
