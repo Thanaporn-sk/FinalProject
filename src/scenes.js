@@ -13,7 +13,7 @@ function getRandomInt(min, max) {
 }
 
 function getRandomArbitrary(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
+  return Math.random() * (max - min) + min;
 }
 
 function getScene(sceneName) {
@@ -24,22 +24,11 @@ function getScene(sceneName) {
     }
 }
 
-function timeIsOnBeat(framework) {
+function timeIsOnBeat(framework, fraction) {
   var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
   var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
   divisor = divisor/60;
-  var epsilon = 0.02; 
-  if (time % divisor < epsilon) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-function timeIsOnHalfBeat(framework) {
-  var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
-  var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
-  divisor = divisor/120;
+  divisor = divisor/fraction;
   var epsilon = 0.02; 
   if (time % divisor < epsilon) {
     return true;
@@ -83,19 +72,49 @@ var yAxis = new THREE.Vector3(0,1,0);
 var zAxis = new THREE.Vector3(0,0,1);
 
 function getRandomColor() {
-  var colors = ["aqua","aquamarine","azure","blue","blueviolet","cadetblue","coral","cornflowerblue","crimson","cyan","deeppink","deepskyblue","dodgerblue","firebrick","forestgreen","fuchsia","gold","green","greenyellow","honeydew","hotpink","indianred","indigo","lavender","lawngreen","lime","limegreen","magenta","maroon","midnightblue","mistyrose","navy","orange","orangered","orchid","peachpuff","pink","powderblue","purple","red","royalblue","salmon","seagreen","skyblue","springgreen","steelblue","teal","tomato","turquoise","violet","yellow"];
+  var colors = ["aqua","aquamarine","blue","blueviolet","cornflowerblue","cyan","deeppink","deepskyblue","dodgerblue","fuchsia","greenyellow","hotpink","lawngreen","lime","limegreen","magenta","orange","orchid","plum","powderblue","red","royalblue","skyblue","springgreen","turquoise","violet","yellow"];
 
   var random = getRandomInt(0, colors.length);
   return colors[random];
 }
 
+function getRandomGeometryShape() {
+  var randomInt = getRandomInt(0, 3);
+  switch (randomInt) {
+    case 0: 
+      return new THREE.OctahedronGeometry();
+      break;
+    case 1: 
+      return new THREE.BoxGeometry( 1, 1, 1 );
+      break;
+    case 2: 
+      return new THREE.IcosahedronGeometry();
+      break;
+  }
+}
+
+function getRandomMaterial() {
+  var randomInt = getRandomInt(0, 3);
+  switch (randomInt) {
+    case 0: 
+      return new THREE.MeshBasicMaterial( {color: getRandomColor()} );
+      break;
+    case 1: 
+      return new THREE.MeshBasicMaterial( {color: getRandomColor(), wireframe: true} );
+      break;
+    case 2:
+      return new THREE.MeshNormalMaterial();
+      break;
+  }
+}
+
 function initializeGeomGeneration(framework) {
   var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-  camera.position.set(0, 0, -5);
+  camera.position.set(5, 5, 5);
   camera.lookAt(new THREE.Vector3(0,0,0));
 
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xffffff );
+  scene.background = new THREE.Color( 'whitesmoke' );
   scene.add(new THREE.AmbientLight(0x333333));
 
   var controls = new OrbitControls(camera, framework.renderer.domElement);
@@ -111,109 +130,131 @@ function initializeGeomGeneration(framework) {
         scene: scene,
         camera: camera,
         onUpdate: function(framework) {
-          var offset = 1;
+          var offset = 100;
           if (framework.audioSourceBuffer.buffer != undefined) {
               var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
               framework.audioAnalyser.getByteFrequencyData(array);
               offset = getAverageVolume(array);
-          }
-          if (timeIsOnHalfBeat(framework)) {
-            for (var c = 0; c < framework.scene.children.length; c++) {
-              framework.scene.remove(framework.scene.getObjectByName("cube"+c));
-            }
-            for (var i = 0; i < offset; i++) {
-              var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-              geometry.translate(getRandomArbitrary(-10,10), getRandomArbitrary(-20,20), getRandomArbitrary(-20,20));
-              var scale = getRandomArbitrary(1, offset);
-              geometry.scale(scale, scale, scale);
-              var material = new THREE.MeshBasicMaterial( {color: getRandomColor()} );
-              var object = new THREE.Mesh( geometry, material );
 
-              // change pivot axis to object center
-              object.geometry.computeBoundingBox();
-
-              var boundingBox = object.geometry.boundingBox;
-
-              var position = new THREE.Vector3();
-              position.subVectors( boundingBox.max, boundingBox.min );
-              position.multiplyScalar( 0.5 );
-              position.add( boundingBox.min );
-              position.applyMatrix4( object.matrixWorld );
-
-              object.geometry.applyMatrix( 
-                new THREE.Matrix4()
-                  .makeTranslation( 
-                    -(position.x), 
-                    -(position.y), 
-                    -(position.z) 
-                  ) 
-              );
-
-              object.geometry.verticesNeedUpdate = true;
-
-              object.position.x = position.x;
-              object.position.y = position.y;
-              object.position.z = position.z;
-
-              var cubeName = "cube" + i;
-              object.name = cubeName;
-              framework.scene.add(object);
-            }
-          } else if (timeIsOnBeat) {
-            for (var i = 0; i < framework.scene.children.length; i++) {
-              var object = framework.scene.getObjectByName("cube"+i);
-              if (object != undefined) {
-                var random = getRandomInt(0,3);
-                var num = i % 3;
-                if (num == 0) {
-                  object.rotation.x += offset/2000;
-                } else if (num == 1) {
-                  object.rotation.y += offset/2000;
-                } else if (num == 2) {
-                  object.rotation.z += offset/2000;
+              // generate geometry to the beat
+              if (timeIsOnBeat(framework, 4) && !framework.paused) {     
+                for (var c = 0; c < framework.scene.children.length; c++) {
+                  framework.scene.remove(framework.scene.getObjectByName("cube"+c));
                 }
-                if (random == 0){
-                  object.scale.set(offset/50, offset/50, offset/50);
+                for (var i = 0; i < offset/10; i++) {
+                  var geometry =  getRandomGeometryShape();
+                  geometry.translate(getRandomArbitrary(-15,16), getRandomArbitrary(-15,16), getRandomArbitrary(-15,16));
+                  var material = getRandomMaterial();
+                  var object = new THREE.Mesh( geometry, material );
+                  var scale = 1; 
+                  if (offset > 50) { 
+                    scale = offset/50;
+                  }
+                  object.scale.set(scale, scale, scale);
+
+                  // change pivot axis to object center
+                  object.geometry.computeBoundingBox();
+
+                  var boundingBox = object.geometry.boundingBox;
+
+                  var position = new THREE.Vector3();
+                  position.subVectors( boundingBox.max, boundingBox.min );
+                  position.multiplyScalar( 0.5 );
+                  position.add( boundingBox.min );
+                  position.applyMatrix4( object.matrixWorld );
+
+                  object.geometry.applyMatrix( 
+                    new THREE.Matrix4()
+                      .makeTranslation( 
+                        -(position.x), 
+                        -(position.y), 
+                        -(position.z) 
+                      ) 
+                  );
+
+                  object.geometry.verticesNeedUpdate = true;
+
+                  object.position.x = position.x;
+                  object.position.y = position.y;
+                  object.position.z = position.z;
+
+                  var cubeName = "cube" + i;
+                  object.name = cubeName;
+                  framework.scene.add(object);
+                }
+              } else if (timeIsOnBeat, 1) {
+                for (var i = 0; i < framework.scene.children.length; i++) {
+                  var object = framework.scene.getObjectByName("cube"+i);
+                  if (object != undefined) {
+                    var random = getRandomInt(0,3);
+                    var num = i % 3;
+                    if (num == 0) {
+                      object.rotation.x += offset/2000;
+                    } else if (num == 1) {
+                      object.rotation.y += offset/2000;
+                    } else if (num == 2) {
+                      object.rotation.z += offset/2000;
+                    }
+                    if (random == 0){
+                      object.scale.set(offset/100, offset/100, offset/100);
+                    }
+                  }
                 }
               }
-            }
+            } 
           }
-        }
     }
 
     allScenes.push(geomScene);
 }
 
+function createSpiralGeometryWithNoise(noiseLevel) {
+  var geometry = new THREE.Geometry();
+  // sphere spiral
+  var sz = 16, cxy = 100, cz = cxy * sz;
+  var hxy = Math.PI / cxy, hz = Math.PI / cz;
+  var r = 10;
+  for (var i = -cz; i < cz; i++) {
+      var lxy = i * hxy;
+      var lz = i * hz;
+      var rxy = r / Math.cosh(lz);
+      var x = rxy * Math.cos(lxy);
+      var y = rxy * Math.sin(lxy) + getRandomArbitrary(0, noiseLevel);
+      var z = r * Math.tanh(lz) + getRandomArbitrary(0, noiseLevel);
+      geometry.vertices.push(new THREE.Vector3(x, y, z));
+  }
+  return geometry;
+}
+
 function initializeSpiral(framework) {
-  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-  camera.position.set(0, 0, -5);
+  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 2000 );
+  camera.position.set(-100, 0, 0);
   camera.lookAt(new THREE.Vector3(0,0,0));
+  var controls = new OrbitControls(camera, framework.renderer.domElement);
+  controls.enableDamping = true;
+  controls.enableZoom = true;
+  controls.target.set(0, 0, 0);
+  controls.rotateSpeed = 0.3;
+  controls.zoomSpeed = 1.0;
+  controls.panSpeed = 2.0;
 
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
   scene.add(new THREE.AmbientLight(0x333333));
   
-  var numSpirals = 50; 
+  var numSpirals = 60; 
 
   var offset = 0.5;
   for (var s = 0; s < numSpirals; s++) {
-    var geometry = new THREE.Geometry();
-    // sphere spiral
-    var sz = 16, cxy = 100, cz = cxy * sz;
-    var hxy = Math.PI / cxy, hz = Math.PI / cz;
-    var r = 20;
-    for (var i = -cz; i < cz; i++) {
-        var lxy = i * hxy;
-        var lz = i * hz;
-        var rxy = r / Math.cosh(lz);
-        var x = rxy * Math.cos(lxy);
-        var y = rxy * Math.sin(lxy);
-        var z = r * Math.tanh(lz);
-        geometry.vertices.push(new THREE.Vector3(x, y, z));
+    var randomInt = getRandomInt(0, 2);
+    var geometry; 
+    if (randomInt == 0) {
+      geometry = createSpiralGeometryWithNoise(0.3);
+    } else {
+      geometry = createSpiralGeometryWithNoise(0);
     }
-    //geometry.translate(offset, 0, 0);
     geometry.scale(offset, offset, offset);
-    offset += 0.5
+    offset += 0.05;
 
     var obj = new THREE.Line(geometry, new THREE.LineBasicMaterial({color: getRandomColor()}));
     var spiralName = "spiral" + s;
@@ -226,19 +267,38 @@ function initializeSpiral(framework) {
         scene: scene,
         camera: camera,
         onUpdate: function(framework) {
-          var offset = 0.05;
             if (framework.audioSourceBuffer.buffer != undefined) {
-                var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-                framework.audioAnalyser.getByteFrequencyData(array);
-                offset = getAverageVolume(array)/250;
+              var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+              framework.audioAnalyser.getByteFrequencyData(array);
+              var volume = getAverageVolume(array);
+              var step = Math.round(array.length / numSpirals);
+
+              //Iterate through the bars and add noise
+              for (var i = 0; i < numSpirals; i++) {
+                var spiralName = "spiral" + i;
+                var spiral = framework.scene.getObjectByName(spiralName);
+
+                var value = array[i * step] / 4;
+                value = value < 1 ? 1 : value;
+                spiral.rotation.z += value/100;
+                spiral.geometry.verticesNeedUpdate = true;
+                if (timeIsOnBeat(framework, 10)) {
+                  var scale = 1; 
+                  if (volume > 50) { 
+                    scale = volume/50;
+                  }
+                  spiral.scale.set(scale, scale, scale);
+                }
+              }
+            } else {
+              for (var i = 0; i < numSpirals; i++) {
+                var spiralName = "spiral" + i;
+                var spiral = framework.scene.getObjectByName(spiralName);
+                spiral.rotation.z += 0.05;
+                spiral.geometry.verticesNeedUpdate = true;
+                //spiral.material.color.setStyle(getRandomColor());
+              }
             }
-          for (var i = 0; i < numSpirals; i++) {
-            var spiralName = "spiral" + i;
-            var spiral = framework.scene.getObjectByName(spiralName);
-            spiral.rotation.z += offset;
-            spiral.geometry.verticesNeedUpdate = true;
-            //spiral.material.color.setStyle(getRandomColor());
-          }
         }
     }
 
@@ -289,10 +349,11 @@ function initializeIcosahedron(framework) {
     var icosahedronGeometry = new THREE.IcosahedronGeometry(1, guiFields.icosahedronDetail);
 
     var texturedIcosahedron = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
+    texturedIcosahedron.scale.set(20,20,20);
     scene.add(texturedIcosahedron);
 
     // set camera position
-    camera.position.set(1, 1, 5);
+    camera.position.set(1, 1, -100);
     camera.lookAt(new THREE.Vector3(0,0,0));
 
     var icosahedronScene = {
@@ -301,22 +362,7 @@ function initializeIcosahedron(framework) {
         camera: camera,
         onUpdate: function(framework) {
             icosahedronMaterial.uniforms.time.value = Date.now() - programStartTime;
-            // get the average for the first channel
             if (framework.audioSourceBuffer.buffer != undefined) {
-              // var array = new Uint8Array(framework.audioAnalyser.frequencyBinCount);
-              // framework.audioAnalyser.getByteFrequencyData(array);
-
-              // var step = Math.round(array.length / 60);
-
-              // var value = 0;
-              // //Iterate through the bars and scale the z axis
-              // for (var i = 0; i < 60; i++) {
-              //     var temp = array[i * step] / 4;
-              //     value += temp < 1 ? 1 : temp;
-              //     console.log(value);
-              //     icosahedronMaterial.audioScale = value;
-              // }
-             // get the average, bincount is fftsize / 2
               var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
               framework.audioAnalyser.getByteFrequencyData(array);
               var average = getAverageVolume(array)
