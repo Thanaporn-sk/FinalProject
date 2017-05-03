@@ -78,6 +78,10 @@ var sinh = Math.sinh || function sinh(x) {
     return (Math.exp(x) - Math.exp(-x)) / 2;
 };
 
+var xAxis = new THREE.Vector3(1,0,0);
+var yAxis = new THREE.Vector3(0,1,0);
+var zAxis = new THREE.Vector3(0,0,1);
+
 function getRandomColor() {
   var colors = ["aqua","aquamarine","azure","blue","blueviolet","cadetblue","coral","cornflowerblue","crimson","cyan","deeppink","deepskyblue","dodgerblue","firebrick","forestgreen","fuchsia","gold","green","greenyellow","honeydew","hotpink","indianred","indigo","lavender","lawngreen","lime","limegreen","magenta","maroon","midnightblue","mistyrose","navy","orange","orangered","orchid","peachpuff","pink","powderblue","purple","red","royalblue","salmon","seagreen","skyblue","springgreen","steelblue","teal","tomato","turquoise","violet","yellow"];
 
@@ -86,7 +90,7 @@ function getRandomColor() {
 }
 
 function initializeGeomGeneration(framework) {
-  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000 );
   camera.position.set(0, 0, -5);
   camera.lookAt(new THREE.Vector3(0,0,0));
 
@@ -123,17 +127,43 @@ function initializeGeomGeneration(framework) {
               var scale = getRandomArbitrary(1, offset);
               geometry.scale(scale, scale, scale);
               var material = new THREE.MeshBasicMaterial( {color: getRandomColor()} );
-              var cube = new THREE.Mesh( geometry, material );
+              var object = new THREE.Mesh( geometry, material );
+
+              // change pivot axis to object center
+              object.geometry.computeBoundingBox();
+
+              var boundingBox = object.geometry.boundingBox;
+
+              var position = new THREE.Vector3();
+              position.subVectors( boundingBox.max, boundingBox.min );
+              position.multiplyScalar( 0.5 );
+              position.add( boundingBox.min );
+              position.applyMatrix4( object.matrixWorld );
+
+              object.geometry.applyMatrix( 
+                new THREE.Matrix4()
+                  .makeTranslation( 
+                    -(position.x), 
+                    -(position.y), 
+                    -(position.z) 
+                  ) 
+              );
+
+              object.geometry.verticesNeedUpdate = true;
+
+              object.position.x = position.x;
+              object.position.y = position.y;
+              object.position.z = position.z;
+
               var cubeName = "cube" + i;
-              cube.name = cubeName;
-              framework.scene.add(cube);
+              object.name = cubeName;
+              framework.scene.add(object);
             }
           } else if (timeIsOnBeat) {
             for (var i = 0; i < framework.scene.children.length; i++) {
               var object = framework.scene.getObjectByName("cube"+i);
               if (object != undefined) {
-                object.scale.set(offset, offset, 1);
-                object.scale.set(1/offset, 1/offset, 1);
+                object.rotation.z += offset/1000;
               }
             }
           }
