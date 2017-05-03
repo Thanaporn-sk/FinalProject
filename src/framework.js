@@ -2,7 +2,7 @@
 const THREE = require('three');
 import Stats from 'stats-js'
 import DAT from 'dat-gui'
-import { detectBeat } from 'web-audio-beat-detector';
+import { analyze } from 'web-audio-beat-detector';
 
 // when the scene is done initializing, the function passed as `callback` will be executed
 // then, every frame, the function passed as `update` will be executed
@@ -40,7 +40,7 @@ function init(callback, update) {
           framework.audioBuffer = buffer;
           framework.audioSourceBuffer.start();
           framework.audioSourceBuffer.loop = true;
-          detectBeat(framework.audioSourceBuffer.buffer).then((bpm) => {
+          analyze(framework.audioSourceBuffer.buffer).then((bpm) => {
               // the bpm could be analyzed 
               console.log(bpm);
               framework.songBPM = bpm;

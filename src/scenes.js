@@ -14,6 +14,10 @@ function getScene(sceneName) {
     }
 }
 
+function getNumScenes() {
+  return allScenes.length;
+}
+
 function getSceneByIndex(sceneIndex) {
     return allScenes[sceneIndex];
 }
@@ -41,7 +45,7 @@ var sinh = Math.sinh || function sinh(x) {
 
 function initializeSpiral(framework) {
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-  camera.position.set(1, 1, -5);
+  camera.position.set(0, 0, -5);
   camera.lookAt(new THREE.Vector3(0,0,0));
 
   var controls = new OrbitControls(camera, framework.renderer.domElement);
@@ -56,7 +60,7 @@ function initializeSpiral(framework) {
   scene.background = new THREE.Color( 0xffffff );
   scene.add(new THREE.AmbientLight(0x333333));
   
-  var numSpirals = 5; 
+  var numSpirals = 10; 
 
   var offset = 0.5;
   for (var s = 0; s < numSpirals; s++) {
@@ -74,7 +78,8 @@ function initializeSpiral(framework) {
         var z = r * Math.tanh(lz);
         geometry.vertices.push(new THREE.Vector3(x, y, z));
     }
-    geometry.translate(0, offset, 0);
+    //geometry.translate(offset, 0, 0);
+    geometry.scale(offset, offset, offset);
     offset += 0.5
 
     var obj = new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x339900, linewidth: 100}));
@@ -276,5 +281,6 @@ function mapVolumeToNoiseStrength(vol) {
 export default {
   initializeAllScenes: initializeAllScenes,
   getScene: getScene,
-  getSceneByIndex: getSceneByIndex
+  getSceneByIndex: getSceneByIndex,
+  getNumScenes: getNumScenes
 }

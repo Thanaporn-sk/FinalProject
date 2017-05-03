@@ -26,13 +26,41 @@ function onLoad(framework) {
   });
 }
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function switchVisualizerOnBeat(framework) {
+  var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
+  var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
+  divisor = divisor/60;
+  var epsilon = 0.02; 
+  console.log(time); 
+  console.log(divisor); 
+  console.log(time % divisor);
+  if (time % divisor < epsilon) {
+    var randomNum = getRandomInt(0, Scenes.getNumScenes());
+    while (randomNum == framework.visualizerIndex) {
+      randomNum = getRandomInt(0, Scenes.getNumScenes());
+    }
+    switchVisualizer(framework, randomNum);
+  }
+} 
+
+function switchVisualizer(framework, visualizerIndex) {
+  currentVisualizer = Scenes.getSceneByIndex(visualizerIndex);
+  framework.scene = currentVisualizer.scene;
+  framework.camera = currentVisualizer.camera;
+}
+
 // called on frame updates
 function onUpdate(framework) {
   if (currentVisualizer != undefined) {
+    switchVisualizerOnBeat(framework);
     if (framework.visualizerIndex != undefined && currentVisualizer.index != framework.visualizerIndex) {
-      currentVisualizer = Scenes.getSceneByIndex(framework.visualizerIndex);
-      framework.scene = currentVisualizer.scene;
-      framework.camera = currentVisualizer.camera;
+      switchVisualizer(framework, framework.visualizerIndex);
     }
 
     currentVisualizer.onUpdate(framework);
