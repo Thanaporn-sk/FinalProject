@@ -43,7 +43,6 @@ function init(callback, update) {
           framework.audioSourceBuffer.loop = true;
           analyze(framework.audioSourceBuffer.buffer).then((bpm) => {
               // the bpm could be analyzed 
-              console.log(bpm);
               framework.songBPM = bpm;
           })
           .catch((err) => {

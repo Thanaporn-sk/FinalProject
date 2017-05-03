@@ -10,6 +10,7 @@ function onLoad(framework) {
   Scenes.initializeAllScenes(framework);
 
   currentVisualizer = Scenes.getScene("icosahedron");
+  framework.visualizerIndex = 0;
   framework.scene = currentVisualizer.scene;
   framework.camera = currentVisualizer.camera;
   var renderer = framework.renderer;
@@ -29,22 +30,25 @@ function switchVisualizer(framework, visualizerIndex) {
   currentVisualizer = Scenes.getSceneByIndex(visualizerIndex);
   framework.scene = currentVisualizer.scene;
   framework.camera = currentVisualizer.camera;
+  framework.visualizerIndex = visualizerIndex;
 }
 
 // called on frame updates
 function onUpdate(framework) {
   if (currentVisualizer != undefined) {
-    if (Scenes.timeIsOnBeat(framework, 0.1)) {
+    // switch manually
+    if (currentVisualizer.index != framework.visualizerIndex) {
+      switchVisualizer(framework, framework.visualizerIndex);
+    } 
+    // switch automatically
+    if (Scenes.timeIsOnBeat(framework, 0.5)) {
       var randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
       while (randomNum == framework.visualizerIndex) {
         randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
-      }
+      } 
+      //console.log("switched to " + randomNum); 
       switchVisualizer(framework, randomNum);
     }
-    if (framework.visualizerIndex != undefined && currentVisualizer.index != framework.visualizerIndex) {
-      switchVisualizer(framework, framework.visualizerIndex);
-    }
-
     currentVisualizer.onUpdate(framework);
   }
 }

@@ -29,7 +29,7 @@ function timeIsOnBeat(framework, fraction) {
   var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
   divisor = divisor/60;
   divisor = divisor/fraction;
-  var epsilon = 0.02; 
+  var epsilon = 0.01; 
   if (time % divisor < epsilon) {
     return true;
   } else {
@@ -224,7 +224,6 @@ function initializeGeomGeneration(framework) {
                   object.name = cubeName;
                   framework.scene.add(object);
                 }
-                framework.cameraPaused == true;
               } else if (timeIsOnBeat, 1) {
                 for (var i = 0; i < framework.scene.children.length; i++) {
                   var object = framework.scene.getObjectByName("cube"+i);
@@ -450,6 +449,13 @@ function initializeStarField(framework) {
     var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
     camera.position.set(1, 1, -100);
     camera.lookAt(new THREE.Vector3(0,0,0));
+    var controls = new OrbitControls(camera, framework.renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = true;
+    controls.target.set(0, 0, 0);
+    controls.rotateSpeed = 0.3;
+    controls.zoomSpeed = 1.0;
+    controls.panSpeed = 2.0;
 
     var particles, materials = [];
     var geometry = new THREE.Geometry();
@@ -519,8 +525,10 @@ function initializeStarField(framework) {
               }
             }
           }
-          animateCamera(framework, 1, sampleClosedSpline); 
-          framework.camera.lookAt(new THREE.Vector3(0,0,0));
+          if (!framework.cameraPaused) {
+            animateCamera(framework, 1, sampleClosedSpline); 
+            framework.camera.lookAt(new THREE.Vector3(0,0,0));
+          }
         }
     }
 
