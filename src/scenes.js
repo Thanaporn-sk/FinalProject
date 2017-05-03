@@ -149,6 +149,14 @@ function initializeGeomGeneration(framework) {
   scene.background = new THREE.Color( 'whitesmoke' );
   scene.add(new THREE.AmbientLight(0x333333));
 
+  var controls = new OrbitControls(camera, framework.renderer.domElement);
+  controls.enableDamping = true;
+  controls.enableZoom = true;
+  controls.target.set(0, 0, 0);
+  controls.rotateSpeed = 0.3;
+  controls.zoomSpeed = 1.0;
+  controls.panSpeed = 2.0;
+
   var pipeSpline = new THREE.CatmullRomCurve3( [
       new THREE.Vector3( 0, 10, -10 ), new THREE.Vector3( 10, 0, -10 ),
       new THREE.Vector3( 20, 0, 0 ), new THREE.Vector3( 30, 0, 10 ),
