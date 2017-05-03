@@ -6,12 +6,46 @@ var allScenes = [];
 // used to animate the icosahedron
 var programStartTime;
 
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function getRandomArbitrary(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
 function getScene(sceneName) {
     for (var i = 0; i < allScenes.length; i++) {
         if (allScenes[i].name == sceneName) {
             return allScenes[i];
         }
     }
+}
+
+function timeIsOnBeat(framework) {
+  var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
+  var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
+  divisor = divisor/60;
+  var epsilon = 0.02; 
+  if (time % divisor < epsilon) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function timeIsOnHalfBeat(framework) {
+  var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
+  var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
+  divisor = divisor/120;
+  var epsilon = 0.02; 
+  if (time % divisor < epsilon) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function getNumScenes() {
@@ -27,6 +61,7 @@ function initializeAllScenes(framework) {
     initializeIcosahedron(framework);
     initializeStarField(framework);
     initializeSpiral(framework);
+    initializeGeomGeneration(framework);
 
     for (var i = 0; i < allScenes.length; i++) {
         allScenes[i].index = i;
@@ -43,10 +78,21 @@ var sinh = Math.sinh || function sinh(x) {
     return (Math.exp(x) - Math.exp(-x)) / 2;
 };
 
-function initializeSpiral(framework) {
+function getRandomColor() {
+  var colors = ["aqua","aquamarine","azure","blue","blueviolet","cadetblue","coral","cornflowerblue","crimson","cyan","deeppink","deepskyblue","dodgerblue","firebrick","forestgreen","fuchsia","gold","green","greenyellow","honeydew","hotpink","indianred","indigo","lavender","lawngreen","lime","limegreen","magenta","maroon","midnightblue","mistyrose","navy","orange","orangered","orchid","peachpuff","pink","powderblue","purple","red","royalblue","salmon","seagreen","skyblue","springgreen","steelblue","teal","tomato","turquoise","violet","yellow"];
+
+  var random = getRandomInt(0, colors.length);
+  return colors[random];
+}
+
+function initializeGeomGeneration(framework) {
   var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
   camera.position.set(0, 0, -5);
   camera.lookAt(new THREE.Vector3(0,0,0));
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0xffffff );
+  scene.add(new THREE.AmbientLight(0x333333));
 
   var controls = new OrbitControls(camera, framework.renderer.domElement);
   controls.enableDamping = true;
@@ -55,12 +101,58 @@ function initializeSpiral(framework) {
   controls.rotateSpeed = 0.3;
   controls.zoomSpeed = 1.0;
   controls.panSpeed = 2.0;
-  
+
+  var geomScene = {
+        name: 'geoms',
+        scene: scene,
+        camera: camera,
+        onUpdate: function(framework) {
+          var offset = 1;
+          if (framework.audioSourceBuffer.buffer != undefined) {
+              var array =  new Uint8Array(framework.audioAnalyser.frequencyBinCount);
+              framework.audioAnalyser.getByteFrequencyData(array);
+              offset = getAverageVolume(array);
+          }
+          if (timeIsOnHalfBeat(framework)) {
+            for (var c = 0; c < framework.scene.children.length; c++) {
+              framework.scene.remove(framework.scene.getObjectByName("cube"+c));
+            }
+            for (var i = 0; i < offset; i++) {
+              var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+              geometry.translate(getRandomArbitrary(-10,10), getRandomArbitrary(-20,20), getRandomArbitrary(-20,20));
+              var scale = getRandomArbitrary(1, offset);
+              geometry.scale(scale, scale, scale);
+              var material = new THREE.MeshBasicMaterial( {color: getRandomColor()} );
+              var cube = new THREE.Mesh( geometry, material );
+              var cubeName = "cube" + i;
+              cube.name = cubeName;
+              framework.scene.add(cube);
+            }
+          } else if (timeIsOnBeat) {
+            for (var i = 0; i < framework.scene.children.length; i++) {
+              var object = framework.scene.getObjectByName("cube"+i);
+              if (object != undefined) {
+                object.scale.set(offset, offset, 1);
+                object.scale.set(1/offset, 1/offset, 1);
+              }
+            }
+          }
+        }
+    }
+
+    allScenes.push(geomScene);
+}
+
+function initializeSpiral(framework) {
+  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  camera.position.set(0, 0, -5);
+  camera.lookAt(new THREE.Vector3(0,0,0));
+
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xffffff );
+  scene.background = new THREE.Color(0xffffff);
   scene.add(new THREE.AmbientLight(0x333333));
   
-  var numSpirals = 10; 
+  var numSpirals = 50; 
 
   var offset = 0.5;
   for (var s = 0; s < numSpirals; s++) {
@@ -82,7 +174,7 @@ function initializeSpiral(framework) {
     geometry.scale(offset, offset, offset);
     offset += 0.5
 
-    var obj = new THREE.Line(geometry, new THREE.LineBasicMaterial({color: 0x339900, linewidth: 100}));
+    var obj = new THREE.Line(geometry, new THREE.LineBasicMaterial({color: getRandomColor()}));
     var spiralName = "spiral" + s;
     obj.name = spiralName;
     scene.add(obj);
@@ -104,6 +196,7 @@ function initializeSpiral(framework) {
             var spiral = framework.scene.getObjectByName(spiralName);
             spiral.rotation.z += offset;
             spiral.geometry.verticesNeedUpdate = true;
+            //spiral.material.color.setStyle(getRandomColor());
           }
         }
     }
@@ -282,5 +375,6 @@ export default {
   initializeAllScenes: initializeAllScenes,
   getScene: getScene,
   getSceneByIndex: getSceneByIndex,
-  getNumScenes: getNumScenes
+  getNumScenes: getNumScenes,
+  getRandomInt: getRandomInt
 }

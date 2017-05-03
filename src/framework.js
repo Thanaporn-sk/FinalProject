@@ -144,6 +144,10 @@ function init(callback, update) {
         framework.visualizerIndex = 2;
         console.log(framework.visualizerIndex);
       }
+      if (e.keyCode == 51) {
+        framework.visualizerIndex = 3;
+        console.log(framework.visualizerIndex);
+      }
     }
 
     // assign THREE.js objects to the object we will return

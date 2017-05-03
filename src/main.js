@@ -9,8 +9,7 @@ var currentVisualizer;
 function onLoad(framework) {
   Scenes.initializeAllScenes(framework);
 
-  //currentVisualizer = Scenes.getScene("icosahedron");
-  currentVisualizer = Scenes.getScene("spiral");
+  currentVisualizer = Scenes.getScene("geoms");
   framework.scene = currentVisualizer.scene;
   framework.camera = currentVisualizer.camera;
   var renderer = framework.renderer;
@@ -26,24 +25,15 @@ function onLoad(framework) {
   });
 }
 
-function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
 function switchVisualizerOnBeat(framework) {
   var time = framework.audioContext.currentTime - framework.audioStartTime; // in seconds
   var divisor = (framework.songBPM == undefined) ? 120 : framework.songBPM;
   divisor = divisor/60;
   var epsilon = 0.02; 
-  console.log(time); 
-  console.log(divisor); 
-  console.log(time % divisor);
   if (time % divisor < epsilon) {
-    var randomNum = getRandomInt(0, Scenes.getNumScenes());
+    var randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
     while (randomNum == framework.visualizerIndex) {
-      randomNum = getRandomInt(0, Scenes.getNumScenes());
+      randomNum = Scenes.getRandomInt(0, Scenes.getNumScenes());
     }
     switchVisualizer(framework, randomNum);
   }
