@@ -7,10 +7,10 @@ import { analyze } from 'web-audio-beat-detector';
 // when the scene is done initializing, the function passed as `callback` will be executed
 // then, every frame, the function passed as `update` will be executed
 function init(callback, update) {
-  var gui = new DAT.GUI();
+  //var gui = new DAT.GUI();
 
   var framework = {
-    gui: gui,
+    //gui: gui,
     paused: false,
     audioStartOffset: 0,
     audioStartTime: 0,
