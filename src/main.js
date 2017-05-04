@@ -14,16 +14,16 @@ function onLoad(framework) {
   framework.scene = currentVisualizer.scene;
   framework.camera = currentVisualizer.camera;
   var renderer = framework.renderer;
-  var gui = framework.gui;
+  // var gui = framework.gui;
 
-  // LOOK: the line below is syntactic sugar for the code above. Optional, but I sort of recommend it.
-  // var {scene, camera, renderer, gui, stats} = framework; 
+  // // LOOK: the line below is syntactic sugar for the code above. Optional, but I sort of recommend it.
+  // // var {scene, camera, renderer, gui, stats} = framework; 
 
-  // edit params and listen to changes like this
-  // more information here: https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage
-  gui.add(framework.camera, 'fov', 0, 130).onChange(function(newVal) {
-    framework.camera.updateProjectionMatrix();
-  });
+  // // edit params and listen to changes like this
+  // // more information here: https://workshop.chromeexperiments.com/examples/gui/#1--Basic-Usage
+  // gui.add(framework.camera, 'fov', 0, 130).onChange(function(newVal) {
+  //   framework.camera.updateProjectionMatrix();
+  // });
 }
 
 function switchVisualizer(framework, visualizerIndex) {
